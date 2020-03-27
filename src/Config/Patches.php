@@ -5,32 +5,31 @@ use CodeIgniter\Config\BaseConfig;
 class Patches extends BaseConfig
 {
 	/**
-	 * Array of paths to check during patching.
-	 * Requires: from, to
-	 * Optional: exclude
+	 * Path to the working directory for patch files.
 	 *
-	 * @var array
+	 * @var string
 	 */
-	public $paths = [
-		[
-			'from'    => SYSTEMPATH . '../app',
-			'to'      => APPPATH,
-		],
-		[
-			'from'    => SYSTEMPATH . '../writable',
-			'to'      => WRITEPATH,
-		],
-		[
-			'from'    => SYSTEMPATH . '../public',
-			'to'      => FCPATH,
-		],
-		[
-			'from'    => SYSTEMPATH . '../spark',
-			'to'      => ROOTPATH,
-		],
-		[
-			'from'    => SYSTEMPATH . '../env',
-			'to'      => ROOTPATH,
-		],
-	];
+	public $basePath = WRITEPATH . 'patches';
+
+	/**
+	 * Whether handlers may run their post-patch commands.
+	 *
+	 * @var bool
+	 */
+	public $allowCommands = true;
+
+	/**
+	 * Whether files removed upstream may be deleted locally.
+	 * Overrides individual handler settings.
+	 *
+	 * @var bool
+	 */
+	public $allowDeletes = true;
+
+	/**
+	 * Whether handlers may run their prepatch() and postpatch() methods.
+	 *
+	 * @var bool
+	 */
+	public $allowEvents = true;
 }

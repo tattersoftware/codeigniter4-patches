@@ -6,12 +6,12 @@ use Composer\Console\Application;
 use Symfony\Component\Console\Input\ArrayInput;
 
 
-class Patch extends BaseCommand
+class SelfUpdate extends BaseCommand
 {
-    protected $group       = 'Patches';
-    protected $name        = 'patch';
+    protected $group       = 'CodeIgniter';
+    protected $name        = 'selfupdate';
     protected $description = 'Check for Composer updates then patch this project.';
-    protected $usage       = 'patch';
+    protected $usage       = 'selfupdate';
 
     public function run(array $params)
     {
