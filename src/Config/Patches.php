@@ -12,13 +12,6 @@ class Patches extends BaseConfig
 	public $basePath = WRITEPATH . 'patches';
 
 	/**
-	 * Whether handlers may run their post-patch commands.
-	 *
-	 * @var bool
-	 */
-	public $allowCommands = true;
-
-	/**
 	 * Whether files removed upstream may be deleted locally.
 	 * Overrides individual handler settings.
 	 *
@@ -32,4 +25,11 @@ class Patches extends BaseConfig
 	 * @var bool
 	 */
 	public $allowEvents = true;
+
+	/**
+	 * Array of patch handler names to ignore. E.g. ['Framework']
+	 *
+	 * @var array
+	 */
+	public $ignoredHandlers = [];
 }

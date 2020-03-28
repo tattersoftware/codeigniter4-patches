@@ -2,6 +2,7 @@
 
 use CodeIgniter\Config\BaseConfig;
 use Tatter\Patches\BaseHandler;
+use Tatter\Patches\Interfaces\PatcherInterface;
 
 /**
  * Class Patches
@@ -29,7 +30,7 @@ class Patches
 	 *
 	 * @var Tatter\Patches\Config\Patches
 	 */
-	protected $path;
+	protected $workspace;
 
 	/**
 	 * Initialize the configuration and directories.
@@ -38,9 +39,11 @@ class Patches
 	 */
 	public function __construct(BaseConfig $config = null)
 	{
+		helper('filesystem');
+
 		$this->config = $config ?? config('Patches');
 
-		$this->setPath();
+		$this->setWorkspace();
 	}
 
 	/**
@@ -55,6 +58,20 @@ class Patches
 
 		return $errors;
 	}
+
+	/**
+	 * Display or log a status message.
+	 *
+	 * @param string $message  The status message
+	 * @param bool $error      Whether this is an error message
+	 *
+	 * @return $this
+	 */
+	public function status(string $message, bool $error = false): self
+	{
+		
+		return $this;
+	}
 	
 	/**
 	 * Set the path to the working directory and ensure it exists.
@@ -63,21 +80,21 @@ class Patches
 	 *
 	 * @return $this
 	 */
-	public function setPath(string $path = null): self
+	public function setWorkspace(string $path = null): self
 	{
 		if ($path)
 		{
-			$this->path = rtrim($path, '/') . '/';
+			$this->workspace = rtrim($path, '/') . '/';
 		}
 		else
 		{
-			$this->path = rtrim($this->config->basePath, '/') . '/' . date('Y-m-d-His') . '/';
+			$this->workspace = rtrim($this->config->basePath, '/') . '/' . date('Y-m-d-His') . '/';
 		}
 
 		// Ensure the directory exists
-		if (! is_dir($this->path))
+		if (! is_dir($this->workspace))
 		{
-			mkdir($this->path, 0775, true);
+			mkdir($this->workspace, 0775, true);
 		}
 
 		return $this;
@@ -97,16 +114,60 @@ class Patches
 		$locator = service('locator');
 		foreach ($locator->listFiles('Patchers') as $file)
 		{
-			$name =    basename($file, '.php');
-			$className = $locator->getClassname($file);
+			$classname = $locator->getClassname($file);
 			$instance  = new $classname();
 
-			if ($instance instanceof '\Tatter\Patches\Interfaces\PatcherInterface')
+			if ($instance instanceof PatcherInterface)
 			{
-				$handlers[$name] = $instance;
+				$handlers[basename($file, '.php')] = $instance;
 			}
 		}
 
+		// Remove any that are ignored
+		foreach ($this->config->ignoredHandlers as $name)
+		{
+			unset($handlers[$name]);
+		}
+
+		$this->status('Detected handlers: ' . implode(', ', array_keys($handlers)));
+
 		return $handlers;
+	}
+
+	/**
+	 * Iterate through handlers and copy files to the workspace.
+	 *
+	 * @param $handlers  Array of handler instances
+	 *
+	 * @return array  File copied
+	 */
+	public function stageFiles(array $handlers): array
+	{
+		$paths = [];
+
+		foreach ($handlers as $instance)
+		{
+			foreach ($instance->sources as $source)
+			{
+				// Get individual file paths
+				$files = get_filenames($source['from']);
+
+				// Copy each file to its relative destination
+				foreach ($files as $file)
+				{
+					$path = $this->workspace . $source['to'] . $file;
+
+					// Make sure the destination exists
+					$dir = pathinfo($path, PATHINFO_DIRNAME);
+					if (! file_exists($dir))
+					{
+						mkdir($dir, 0775, true);
+					}
+
+					// Copy the file, retaining the relative structure
+					copy($source['from'] . $file, $path);
+				}
+			}
+		}
 	}
 }

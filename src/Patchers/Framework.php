@@ -5,32 +5,52 @@ use Tatter\Patches\Interfaces\PatcherInterface;
 class Framework implements PatcherInterface
 {
 	/**
+	 * Whether files removed upstream should be deleted locally.
+	 *
+	 * @var bool
+	 */
+	public $delete = true;
+
+	/**
+	 * Method to use when patching files into the project:
+	 * 'copy' : Copies files based on their hash, ignores conflicts
+	 * 'git'  : Uses a temporary repository to merge changes
+	 *
+	 * @var string
+	 */
+	public $method = 'copy';
+
+	/**
 	 * Array of paths to check during patching.
-	 * Requires: from, to
+	 * Required: from (absolute), to (relative)
 	 * Optional: exclude
 	 *
 	 * @var array
 	 */
-	public $paths = [
+	public $sources = [
 		[
 			'from'    => SYSTEMPATH . '../app',
-			'to'      => APPPATH,
+			'to'      => 'app',
 		],
 		[
 			'from'    => SYSTEMPATH . '../writable',
-			'to'      => WRITEPATH,
+			'to'      => 'writeable',
 		],
 		[
 			'from'    => SYSTEMPATH . '../public',
-			'to'      => FCPATH,
+			'to'      => 'public',
 		],
 		[
 			'from'    => SYSTEMPATH . '../spark',
-			'to'      => ROOTPATH,
+			'to'      => '.',
 		],
 		[
 			'from'    => SYSTEMPATH . '../env',
-			'to'      => ROOTPATH,
+			'to'      => '.',
+		],
+		[
+			'from'    => SYSTEMPATH . '../builds',
+			'to'      => '.',
 		],
 	];
 }
