@@ -30,7 +30,7 @@ class Tester implements PatcherInterface
 	public $sources = [
 		[
 			'from'    => SUPPORTPATH . 'files',
-			'to'      => VIRTUALPATH,
+			'to'      => 'tester',
 		],
 	];
 }

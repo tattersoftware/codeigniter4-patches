@@ -1,5 +1,6 @@
 <?php namespace Tatter\Patches;
 
+use CodeIgniter\CLI\CLI;
 use CodeIgniter\Config\BaseConfig;
 use Tatter\Patches\BaseHandler;
 use Tatter\Patches\Interfaces\PatcherInterface;
@@ -26,6 +27,13 @@ class Patches
 	protected $errors = [];
 
 	/**
+	 * Array of handler instances
+	 *
+	 * @var array
+	 */
+	protected $handlers = [];
+
+	/**
 	 * Path to the working directory.
 	 *
 	 * @var Tatter\Patches\Config\Patches
@@ -44,6 +52,7 @@ class Patches
 		$this->config = $config ?? config('Patches');
 
 		$this->setWorkspace();
+		$this->gatherHandlers();
 	}
 
 	/**
@@ -69,8 +78,26 @@ class Patches
 	 */
 	public function status(string $message, bool $error = false): self
 	{
-		
+		if (is_cli() && ENVIRONMENT !== 'testing')
+		{
+			CLI::write($message, $error ? 'red' : 'white');
+		}
+		else
+		{
+			log_message($error ? 'error' : 'debug', $message);
+		}
+
 		return $this;
+	}
+	
+	/**
+	 * Return the path to the working directory.
+	 *
+	 * @return string
+	 */
+	public function getWorkspace(): string
+	{
+		return $this->workspace;
 	}
 	
 	/**
@@ -106,9 +133,9 @@ class Patches
 	 *
 	 * @return array  $name => $instance
 	 */
-	public function getHandlers(): array
+	protected function gatherHandlers(): self
 	{
-		$handlers = [];
+		$this->handlers = [];
 
 		// Get potential handlers from all namespaces
 		$locator = service('locator');
@@ -119,43 +146,72 @@ class Patches
 
 			if ($instance instanceof PatcherInterface)
 			{
-				$handlers[basename($file, '.php')] = $instance;
+				$this->handlers[basename($file, '.php')] = $instance;
 			}
 		}
 
 		// Remove any that are ignored
 		foreach ($this->config->ignoredHandlers as $name)
 		{
-			unset($handlers[$name]);
+			unset($this->handlers[$name]);
 		}
 
-		$this->status('Detected handlers: ' . implode(', ', array_keys($handlers)));
+		$this->status('Detected handlers: ' . implode(', ', array_keys($this->handlers)));
 
-		return $handlers;
+		return $this;
+	}
+
+	/**
+	 * Return loaded handlers.
+	 *
+	 * @return array  $name => $instance
+	 */
+	public function getHandlers(): array
+	{
+		return $this->handlers;
 	}
 
 	/**
 	 * Iterate through handlers and copy files to the workspace.
 	 *
-	 * @param $handlers  Array of handler instances
-	 *
-	 * @return array  File copied
+	 * @return array  Files copied
 	 */
-	public function stageFiles(array $handlers): array
+	public function stageFiles(): array
 	{
 		$paths = [];
 
-		foreach ($handlers as $instance)
+		foreach ($this->handlers as $instance)
 		{
 			foreach ($instance->sources as $source)
 			{
-				// Get individual file paths
-				$files = get_filenames($source['from']);
+				if (! file_exists($source['from']))
+				{
+					continue;
+				}
+
+				$source['to'] = rtrim($source['to'], '/') . '/';
+
+				if (is_dir($source['from']))
+				{
+					$source['from'] = rtrim(realpath($source['from']), '/') . '/';
+
+					// Get individual file paths
+					$files = get_filenames($source['from'], true);
+				}
+				else
+				{
+					$files = [$source['from']];
+				}
 
 				// Copy each file to its relative destination
 				foreach ($files as $file)
 				{
-					$path = $this->workspace . $source['to'] . $file;
+					$path = $this->workspace . $source['to'] . str_replace($source['from'], '', $file);
+
+					if (is_file($source['from']))
+					{
+						$path .= pathinfo($source['from'], PATHINFO_BASENAME);
+					}
 
 					// Make sure the destination exists
 					$dir = pathinfo($path, PATHINFO_DIRNAME);
@@ -165,9 +221,35 @@ class Patches
 					}
 
 					// Copy the file, retaining the relative structure
-					copy($source['from'] . $file, $path);
+					copy($file, $path);
+
+					$paths[] = $path;
 				}
 			}
 		}
+
+		return $paths;
+	}
+
+	/**
+	 * Run handler prepatch methods (if enabled)
+	 *
+	 * @return bool  True if all events succeed
+	 */
+	public function prepatch(): bool
+	{
+		if (! $this->config->allowEvents)
+		{
+			return true;
+		}
+
+		$status = true;
+
+		foreach ($this->handlers as $name => $instance)
+		{
+
+		}
+		
+		return $status;
 	}
 }

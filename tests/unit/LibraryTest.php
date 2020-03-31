@@ -26,6 +26,13 @@ class LibraryTest extends \Tests\Support\VirtualTestCase
 		$this->assertTrue(is_dir($this->config->basePath));
 	}
 
+	public function testGetWorkspace()
+	{
+		$patches = new Patches($this->config);
+
+		$this->assertTrue(is_dir($patches->getWorkspace()));
+	}
+
 	public function testSetWorkspaceCreatesDirectory()
 	{
 		$patches = new Patches($this->config);
@@ -39,9 +46,7 @@ class LibraryTest extends \Tests\Support\VirtualTestCase
 	{
 		$patches = new Patches($this->config);
 
-		$handlers = $patches->getHandlers();
-		
-		$this->assertEquals(['Tester', 'Framework'], array_keys($handlers));
+		$this->assertEquals(['Tester', 'Framework'], array_keys($patches->getHandlers()));
 	}
 
 	public function testIgnoringSkipsHandler()
@@ -49,27 +54,14 @@ class LibraryTest extends \Tests\Support\VirtualTestCase
 		$this->config->ignoredHandlers[] = 'Framework';
 		$patches = new Patches($this->config);
 
-		$handlers = $patches->getHandlers();
-		
-		$this->assertEquals(['Tester'], array_keys($handlers));	
+		$this->assertEquals(['Tester'], array_keys($patches->getHandlers()));	
 	}
 
 	public function testGetHandlersReturnsInstances()
 	{
-		$patches = new Patches($this->config);
-
-		$handlers = $patches->getHandlers();
-		
-		$this->assertInstanceOf('Tatter\Patches\Interfaces\PatcherInterface', reset($handlers));
-	}
-
-	public function testStageFilesCopies()
-	{
 		$patches  = new Patches($this->config);
 		$handlers = $patches->getHandlers();
 
-		$patches->stageFiles($handlers);
-
-		$this->assertTrue(file_exists($this->config->basePath . 'lorem.txt'));
+		$this->assertInstanceOf('Tatter\Patches\Interfaces\PatcherInterface', reset($handlers));
 	}
 }
