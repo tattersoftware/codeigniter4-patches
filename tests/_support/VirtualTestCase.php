@@ -29,6 +29,11 @@ class VirtualTestCase extends CIUnitTestCase
 		{
 			mkdir($this->project, 0700, true);
 		}
+
+		// Standard testing config
+		$this->config           = new \Tatter\Patches\Config\Patches();
+		$this->config->basePath = VIRTUALPATH . 'workspace';
+		$this->config->composer = SUPPORTPATH;
 	}
 
 	public function tearDown(): void

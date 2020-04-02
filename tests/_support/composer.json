@@ -1,0 +1,12 @@
+{
+    "name": "tatter/dummy",
+    "description": "Dummy file to test Patches",
+    "keywords": ["package", "dependency", "autoload"],
+    "homepage": "https://getcomposer.org/",
+    "type": "library",
+    "license": "MIT",
+    "require": {
+        "php": ">=7.2",
+        "tatter/handlers": "^1.0"
+    }
+}

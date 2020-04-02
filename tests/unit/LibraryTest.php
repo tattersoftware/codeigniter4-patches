@@ -7,9 +7,6 @@ class LibraryTest extends \Tests\Support\VirtualTestCase
 	public function setUp(): void
 	{
 		parent::setUp();
-
-		$this->config           = new \Tatter\Patches\Config\Patches();
-		$this->config->basePath = VIRTUALPATH . 'workspace';
 	}
 
 	public function testIsDefinedVirtualPath()
