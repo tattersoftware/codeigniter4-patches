@@ -5,11 +5,18 @@ use CodeIgniter\Config\BaseConfig;
 class Patches extends BaseConfig
 {
 	/**
-	 * Path to the working directory for patch files.
+	 * Path to the base directory for workspaces.
 	 *
 	 * @var string
 	 */
 	public $basePath = WRITEPATH . 'patches';
+
+	/**
+	 * Path to the directory containing composer.json.
+	 *
+	 * @var string
+	 */
+	public $composer = ROOTPATH;
 
 	/**
 	 * Whether files removed upstream may be deleted locally.

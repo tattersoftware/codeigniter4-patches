@@ -2,6 +2,8 @@
 
 use CodeIgniter\CLI\CLI;
 use CodeIgniter\Config\BaseConfig;
+use Composer\Console\Application;
+use Symfony\Component\Console\Input\ArrayInput;
 use Tatter\Patches\BaseHandler;
 use Tatter\Patches\Interfaces\PatcherInterface;
 
@@ -78,13 +80,19 @@ class Patches
 	 */
 	public function status(string $message, bool $error = false): self
 	{
+		// Always log it
+		log_message($error ? 'error' : 'debug', $message);
+
+		// For CLI calls write the output
 		if (is_cli() && ENVIRONMENT !== 'testing')
 		{
 			CLI::write($message, $error ? 'red' : 'white');
 		}
-		else
+		
+		// If it was an error then store it
+		if ($error)
 		{
-			log_message($error ? 'error' : 'debug', $message);
+			$this->errors[] = $error;
 		}
 
 		return $this;
@@ -243,13 +251,45 @@ class Patches
 			return true;
 		}
 
-		$status = true;
+		$result = true;
 
 		foreach ($this->handlers as $name => $instance)
 		{
-
+			if (method_exists($instance, 'prepatch'))
+			{
+				$result = $result && $instanace->prepatch();
+			}
 		}
 		
-		return $status;
+		return $result;
+	}
+
+	/**
+	 * Call Composer programmatically to update all vendor files
+	 * https://stackoverflow.com/questions/17219436/run-composer-with-a-php-script-in-browser#25208897
+	 *
+	 * @return bool  True if the update succeeds
+	 */
+	public function composer(): bool
+	{
+		$application = new Application();
+		$input       = new ArrayInput([
+			'command'       => 'update',
+			'--working-dir' => $this->config->composer,
+		]);
+
+		// Prevent $application->run() from exiting the script
+		$application->setAutoExit(false);
+
+		// Returns int 0 if everything went fine, or an error code
+		$result = $application->run($input);
+
+		if ($result !== 0)
+		{
+			$this->status('Composer failed with error code ' . $result);
+			return false;
+		}
+
+		return true;
 	}
 }
