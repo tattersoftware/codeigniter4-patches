@@ -1,8 +1,8 @@
-<?php namespace Tatter\Patches\Patchers;
+<?php namespace Tatter\Patches\Patches;
 
-use Tatter\Patches\Interfaces\PatcherInterface;
+use Tatter\Patches\Interfaces\SourceInterface;
 
-class Framework implements PatcherInterface
+class Framework implements SourceInterface
 {
 	/**
 	 * Whether files removed upstream should be deleted locally.
@@ -27,7 +27,7 @@ class Framework implements PatcherInterface
 	 *
 	 * @var array
 	 */
-	public $sources = [
+	public $paths = [
 		[
 			'from'    => SYSTEMPATH . '../app',
 			'to'      => 'app',

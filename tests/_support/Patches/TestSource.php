@@ -1,8 +1,8 @@
-<?php namespace Tests\Support\Patchers;
+<?php namespace Tests\Support\Patches;
 
-use Tatter\Patches\Interfaces\PatcherInterface;
+use Tatter\Patches\Interfaces\SourceInterface;;
 
-class Tester implements PatcherInterface
+class TestSource implements SourceInterface
 {
 	/**
 	 * Whether files removed upstream should be deleted locally.
@@ -27,7 +27,7 @@ class Tester implements PatcherInterface
 	 *
 	 * @var array
 	 */
-	public $sources = [
+	public $paths = [
 		[
 			'from'    => SUPPORTPATH . 'files',
 			'to'      => 'tester',

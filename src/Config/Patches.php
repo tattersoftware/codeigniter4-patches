@@ -5,6 +5,13 @@ use CodeIgniter\Config\BaseConfig;
 class Patches extends BaseConfig
 {
 	/**
+	 * Full class name of the handler to use
+	 *
+	 * @var string
+	 */
+	public $handler = 'Tatter\Patches\Handlers\CopyHandler';
+
+	/**
 	 * Path to the base directory for workspaces.
 	 *
 	 * @var string
@@ -34,9 +41,9 @@ class Patches extends BaseConfig
 	public $allowEvents = true;
 
 	/**
-	 * Array of patch handler names to ignore. E.g. ['Framework']
+	 * Array of patch source names to ignore. E.g. ['Framework']
 	 *
 	 * @var array
 	 */
-	public $ignoredHandlers = [];
+	public $ignoredSources = [];
 }
