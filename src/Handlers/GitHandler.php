@@ -3,7 +3,7 @@
 use Tatter\Patches\BaseHandler;
 use Tatter\Patches\Interfaces\HandlerInterface;
 
-class CopyHandler extends BaseHandler implements HandlerInterface
+class GitHandler extends BaseHandler implements HandlerInterface
 {
 	/**
 	 * Compare each updated file with its prepatch equivalent.

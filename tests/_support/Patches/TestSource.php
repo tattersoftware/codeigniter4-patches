@@ -1,8 +1,9 @@
 <?php namespace Tests\Support\Patches;
 
+use Tatter\Patches\BaseSource;
 use Tatter\Patches\Interfaces\SourceInterface;;
 
-class TestSource implements SourceInterface
+class TestSource extends BaseSource implements SourceInterface
 {
 	/**
 	 * Whether files removed upstream should be deleted locally.
@@ -10,15 +11,6 @@ class TestSource implements SourceInterface
 	 * @var bool
 	 */
 	public $delete = true;
-
-	/**
-	 * Method to use when patching files into the project:
-	 * 'copy' : Copies files based on their hash, ignores conflicts
-	 * 'git'  : Uses a temporary repository to merge changes
-	 *
-	 * @var string
-	 */
-	public $method = 'copy';
 
 	/**
 	 * Array of paths to check during patching.
@@ -33,4 +25,16 @@ class TestSource implements SourceInterface
 			'to'      => 'tester',
 		],
 	];
+
+	/**
+	 * Run a simulate prepatch event.
+	 *
+	 * @return bool  Whether or not the event succeeded
+	 */
+	public function prepatch(array $prepatchFiles): bool
+	{
+		$GLOBALS['testSourceDidPrepatch'] = true;
+
+		return true;
+	}
 }

@@ -12,7 +12,7 @@ class ComposerTest extends \Tests\Support\VirtualTestCase
 	public function testComposerSucceeds()
 	{
 		$patches = new BaseHandler($this->config);
-		$result  = $patches->composer();
+		$result  = $patches->composerUpdate();
 
 		$this->assertTrue($result);
 	}
@@ -22,7 +22,7 @@ class ComposerTest extends \Tests\Support\VirtualTestCase
 		$this->config->composer = '/foo/bar';
 
 		$patches = new BaseHandler($this->config);
-		$result  = $patches->composer();
+		$result  = $patches->composerUpdate();
 
 		$this->assertFalse($result);
 		
@@ -33,7 +33,7 @@ class ComposerTest extends \Tests\Support\VirtualTestCase
 	public function testComposerCreatesVendor()
 	{
 		$patches = new BaseHandler($this->config);
-		$patches->composer();
+		$patches->composerUpdate();
 
 		$this->assertTrue(is_dir($this->config->composer . 'vendor'));
 	}

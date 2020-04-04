@@ -1,24 +1,24 @@
 <?php namespace Tatter\Patches\Config;
 
 use CodeIgniter\Config\BaseService;
-use Tatter\Patches\BaseHandler;
+use Tatter\Patches\Interfaces\HandlerInterface;
 
 class Services extends BaseService
 {
 	/**
 	 * Returns a configured patch handler
 	 *
-	 * @param BaseHandler $handler  The patch handler to use
-	 * @param Config      $config
-	 * @param boolean     $getShared
+	 * @param string   $handler  The patch handler to use
+	 * @param Config   $config
+	 * @param boolean  $getShared
 	 *
-	 * @return \Tatter\Patches\BaseHandler
+	 * @return Tatter\Patches\Interfaces\HandlerInterface
 	 */
-	public static function patches(BaseHandler $handler = null, $config = null, bool $getShared = true): Firebase
+	public static function patches(string $handler = null, $config = null, bool $getShared = true): HandlerInterface
 	{
 		if ($getShared)
 		{
-			return static::getSharedInstance('patches', $method, $config);
+			return static::getSharedInstance('patches', $handler, $config);
 		}
 
 		if (is_null($config))

@@ -2,6 +2,7 @@
 
 use CodeIgniter\CLI\CLI;
 use CodeIgniter\Config\BaseConfig;
+use CodeIgniter\Events\Events;
 use Composer\Console\Application;
 use Symfony\Component\Console\Input\ArrayInput;
 use Tatter\Patches\Interfaces\SourceInterface;
@@ -67,25 +68,43 @@ class BaseHandler
 
 		$this->status('Patch initiated, handlers: ' . implode(', ', array_keys($this->handlers)));
 
-		// Stage the files
-		$paths = $this->stageFiles();
-		$s     = $paths == 1 ? '' : 's';
-		$this->status(count($paths) . "file{$s} staged for patching");
+		// Copy the prepatch files
+		$prepatchFiles = $this->copyPaths($this->workspace . 'prepatch/');
 
-		// Run the prepatch events
-		if (! $this->config->allowEvents)
+		$s = $prepatchFiles == 1 ? '' : 's';
+		$this->status(count($prepatchFiles) . "file{$s} prepared for patching");
+
+		// If events are allowed then trigger prepatch
+		if ($this->config->allowEvents)
 		{
-			$this->status('Skipping prepatch event');
-		}
-		elseif ($this->prepatch())
-		{
-			$this->status('Handler prepatch event successful');
+			// Prepatch events receive the array of staged files
+			Events::trigger('prepatch', $prepatchFiles);
 		}
 		else
 		{
-			$this->status('Handler prepatch event failed', true);
+			$this->status('Skipping prepatch event');
 		}
-		
+
+		// Run Composer update
+		$this->composerUpdate();
+
+		// Call the handler's patching method
+		$patchedFiles = $this->patch();
+
+		$s = $patchedFiles == 1 ? '' : 's';
+		$this->status(count($prepatchFiles) . "file{$s} patched");
+
+		// If events are allowed then trigger postpatch
+		if ($this->config->allowEvents)
+		{
+			// Postpatch events receive the array of patched files
+			Events::trigger('postpatch', $patchedFiles);
+		}
+		else
+		{
+			$this->status('Skipping postpatch event');
+		}
+
 		return $result;
 	}
 
@@ -181,19 +200,20 @@ class BaseHandler
 		$locator = service('locator');
 		foreach ($locator->listFiles('Patches') as $file)
 		{
+			$name = basename($file, '.php');
+
+			if (in_array($name, $this->config->ignoredSources))
+			{
+				continue;
+			}
+
 			$classname = $locator->getClassname($file);
 			$instance  = new $classname();
 
 			if ($instance instanceof SourceInterface)
 			{
-				$this->sources[basename($file, '.php')] = $instance;
+				$this->sources[$name] = $instance;
 			}
-		}
-
-		// Remove any that are ignored
-		foreach ($this->config->ignoredSources as $name)
-		{
-			unset($this->sources[$name]);
 		}
 
 		$this->status('Detected sources: ' . implode(', ', array_keys($this->sources)));
@@ -253,18 +273,21 @@ class BaseHandler
 	}
 
 	/**
-	 * Iterate through each source and copy files to the workspace.
+	 * Copy each path to its relative destination.
 	 *
-	 * @return array  Array of the new files
+	 * @param string $destination  Directory to copy files into
+	 *
+	 * @return array  Array of the actual new file paths
 	 */
-	public function stageFiles(): array
+	public function copyPaths(string $destination): array
 	{
-		$filenames = [];
+		$filenames   = [];
+		$destination = rtrim($destination, '/') . '/';
 
 		// Copy each file to its relative destination
 		foreach ($this->gatherPaths() as $path)
 		{
-			$filename = $this->workspace . $path['to'];
+			$filename = $destination . $path['to'];
 
 			// Make sure the destination directory exists
 			$dir = pathinfo($filename, PATHINFO_DIRNAME);
@@ -283,41 +306,12 @@ class BaseHandler
 	}
 
 	/**
-	 * Run handler prepatch methods (if enabled)
-	 *
-	 * @return bool  True if all events succeed
-	 */
-	public function prepatch(): bool
-	{
-		if (! $this->config->allowEvents)
-		{
-			return false;
-		}
-
-		$result = true;
-
-		foreach ($this->sources as $name => $instance)
-		{
-			if (method_exists($instance, 'prepatch'))
-			{
-				if (! $instanace->prepatch())
-				{
-					$this->status('Failed to run prepatch event for ' . $name, true);
-					$result = false;
-				}
-			}
-		}
-		
-		return $result;
-	}
-
-	/**
 	 * Call Composer programmatically to update all vendor files
 	 * https://stackoverflow.com/questions/17219436/run-composer-with-a-php-script-in-browser#25208897
 	 *
 	 * @return bool  True if the update succeeds
 	 */
-	public function composer(): bool
+	public function composerUpdate(): bool
 	{
 		$application = new Application();
 		$params      = [

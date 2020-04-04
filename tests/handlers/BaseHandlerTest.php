@@ -4,11 +4,6 @@ use Tatter\Patches\BaseHandler;
 
 class BaseHandlerTest extends \Tests\Support\VirtualTestCase
 {
-	public function setUp(): void
-	{
-		parent::setUp();
-	}
-
 	public function testIsDefinedVirtualPath()
 	{
 		$test = defined('VIRTUALPATH');
@@ -60,5 +55,51 @@ class BaseHandlerTest extends \Tests\Support\VirtualTestCase
 		$sources = $patches->getSources();
 
 		$this->assertInstanceOf('Tatter\Patches\Interfaces\SourceInterface', reset($sources));
+	}
+
+	public function testGatherPaths()
+	{
+		$this->config->ignoredSources[] = 'Framework';
+
+		$patches = new BaseHandler($this->config);
+		$paths   = $patches->gatherPaths();
+
+		$expected = [
+			[
+				'from' => SUPPORTPATH . 'files/nested/cat.jpg',
+				'to'   => 'tester/nested/cat.jpg',
+			],
+			[
+				'from' => SUPPORTPATH . 'files/lorem.txt',
+				'to'   => 'tester/lorem.txt',
+			],
+		];
+
+		$this->assertCount(2, $paths);
+		$this->assertEquals($expected, $paths);
+	}
+
+	public function testCopyPathsCopiesFilesToDestination()
+	{
+		$patches = new BaseHandler($this->config);
+		$patches->copyPaths(VIRTUALPATH . 'foo');
+
+		$this->assertTrue(file_exists(VIRTUALPATH . 'foo/tester/lorem.txt'));
+	}
+
+	public function CopyPathsReturnsPaths()
+	{
+		$this->config->ignoredSources[] = 'Framework';
+
+		$patches = new BaseHandler($this->config);
+
+		$patches->copyPaths(VIRTUALPATH . 'foo');
+
+		$expected = [
+			VIRTUALPATH . 'foo/tester/nested/cat.jpg',
+			VIRTUALPATH . 'foo/tester/lorem.txt',
+		];
+
+		$this->assertEquals($expected, $paths);
 	}
 }

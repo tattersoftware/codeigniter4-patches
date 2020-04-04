@@ -1,8 +1,9 @@
 <?php namespace Tatter\Patches\Patches;
 
+use Tatter\Patches\BaseSource;
 use Tatter\Patches\Interfaces\SourceInterface;
 
-class Framework implements SourceInterface
+class Framework extends BaseSource implements SourceInterface
 {
 	/**
 	 * Whether files removed upstream should be deleted locally.
@@ -10,15 +11,6 @@ class Framework implements SourceInterface
 	 * @var bool
 	 */
 	public $delete = true;
-
-	/**
-	 * Method to use when patching files into the project:
-	 * 'copy' : Copies files based on their hash, ignores conflicts
-	 * 'git'  : Uses a temporary repository to merge changes
-	 *
-	 * @var string
-	 */
-	public $method = 'copy';
 
 	/**
 	 * Array of paths to check during patching.
