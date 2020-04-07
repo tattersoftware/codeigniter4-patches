@@ -261,6 +261,40 @@ class BaseHandler
 	}
 
 	/**
+	 * Checks if two files both exist and have identical hashes
+	 *
+	 * @param string $file1
+	 * @param string $file2
+	 *
+	 * @return bool  Same or not
+	 */
+	public function isSameFile(string $file1, string $file2): array
+	{
+		return is_file($file1) && is_file($file2) && md5_file($file1) == md5_file($file2);
+	}
+
+	/**
+	 * Copies a file to a destination creating directories as needed
+	 *
+	 * @param string $file1  Full path to the file
+	 * @param string $file2  Full path to the new file
+	 *
+	 * @return bool  Success or failure
+	 */
+	public function copyPath(string $file1, string $file2): array
+	{
+		// Make sure the destination directory exists
+		$dir = pathinfo($file2, PATHINFO_DIRNAME);
+		if (! file_exists($dir))
+		{
+			mkdir($dir, 0775, true);
+		}
+
+		// Copy the file
+		return copy($file1, $file2);
+	}
+
+	/**
 	 * Copy each path to its relative destination.
 	 *
 	 * @param string $destination  Directory to copy files into
@@ -277,17 +311,10 @@ class BaseHandler
 		{
 			$filename = $destination . $path['to'];
 
-			// Make sure the destination directory exists
-			$dir = pathinfo($filename, PATHINFO_DIRNAME);
-			if (! file_exists($dir))
+			if ($this->copyPath($path['from'], $filename))
 			{
-				mkdir($dir, 0775, true);
+				$filenames[] = $filename;
 			}
-
-			// Copy the file, retaining the relative structure
-			copy($path['from'], $filename);
-
-			$filenames[] = $filename;
 		}
 
 		return $filenames;
@@ -377,7 +404,7 @@ class BaseHandler
 			$legacy = $this->workspace . 'legacy/'  . $path['to'];
 
 			// If the file is new or changed then copy it
-			if (! is_file($legacy) || md5_file($path['from']) != md5_file($legacy))
+			if (! $this->isSameFile($legacy, $path['from']))
 			{
 				$filename = $this->workspace . 'current/' . $path['to'];
 

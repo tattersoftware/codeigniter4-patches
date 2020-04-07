@@ -29,7 +29,7 @@ class MockPatcher extends BaseHandler implements HandlerInterface
 	/**
 	 * Compare each updated file with its prepatch equivalent.
 	 */
-	public function patch()
+	public function patch(string $target = null): array
 	{
 		
 	}
