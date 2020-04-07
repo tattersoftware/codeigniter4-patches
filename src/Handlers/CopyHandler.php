@@ -6,7 +6,7 @@ use Tatter\Patches\Interfaces\HandlerInterface;
 class CopyHandler extends BaseHandler implements HandlerInterface
 {
 	/**
-	 * Compare each updated file with its prepatch equivalent.
+	 * Compare files and replace as needed, tracking conflicts
 	 */
 	public function patch()
 	{

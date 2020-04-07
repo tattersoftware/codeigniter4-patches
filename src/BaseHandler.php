@@ -43,6 +43,20 @@ class BaseHandler
 	protected $workspace;
 
 	/**
+	 * Array of filenames from sources before updating
+	 *
+	 * @var array|null
+	 */
+	public $legacyFiles;
+
+	/**
+	 * Array of filenames from sources after updating
+	 *
+	 * @var array|null
+	 */
+	public $currentFiles;
+
+	/**
 	 * Initialize the configuration and directories.
 	 *
 	 * @param BaseConfig $config
@@ -62,48 +76,22 @@ class BaseHandler
 	 *
 	 * @return bool  Whether or not the patch succeeded
 	 */
-	protected function run(): bool
+	public function run(): bool
 	{
 		$result = true;
 
-		$this->status('Patch initiated, handlers: ' . implode(', ', array_keys($this->handlers)));
-
-		// Copy the prepatch files
-		$prepatchFiles = $this->copyPaths($this->workspace . 'prepatch/');
-
-		$s = $prepatchFiles == 1 ? '' : 's';
-		$this->status(count($prepatchFiles) . "file{$s} prepared for patching");
-
-		// If events are allowed then trigger prepatch
-		if ($this->config->allowEvents)
-		{
-			// Prepatch events receive the array of staged files
-			Events::trigger('prepatch', $prepatchFiles);
-		}
-		else
-		{
-			$this->status('Skipping prepatch event');
-		}
+		// Copy legacy files and trigger the prepatch event
+		$this->beforeUpdate();
 
 		// Run Composer update
 		$this->composerUpdate();
 
-		// Call the handler's patching method
-		$patchedFiles = $this->patch();
+		// Check for and copy updated files
+		$this->afterUpdate();
 
-		$s = $patchedFiles == 1 ? '' : 's';
-		$this->status(count($prepatchFiles) . "file{$s} patched");
-
-		// If events are allowed then trigger postpatch
-		if ($this->config->allowEvents)
-		{
-			// Postpatch events receive the array of patched files
-			Events::trigger('postpatch', $patchedFiles);
-		}
-		else
-		{
-			$this->status('Skipping postpatch event');
-		}
+		// Call the child handler's patching method
+		$this->patch();
+		$this->postpatch();
 
 		return $result;
 	}
@@ -306,6 +294,33 @@ class BaseHandler
 	}
 
 	/**
+	 * Copy legacy files and trigger the prepatch event.
+	 *
+	 * @return $this
+	 */
+	public function beforeUpdate(): self
+	{
+		// Copy the prepatch files and store the list
+		$this->legacyFiles = $this->copyPaths($this->workspace . 'legacy/');
+
+		$s = $this->legacyFiles == 1 ? '' : 's';
+		$this->status(count($legacyFiles) . " legacy file{$s} copied");
+
+		// If events are allowed then trigger prepatch
+		if ($this->config->allowEvents)
+		{
+			// Prepatch events receive the array of legacy files
+			Events::trigger('prepatch', $this->legacyFiles);
+		}
+		else
+		{
+			$this->status('Skipping prepatch event');
+		}
+
+		return $this;
+	}
+
+	/**
 	 * Call Composer programmatically to update all vendor files
 	 * https://stackoverflow.com/questions/17219436/run-composer-with-a-php-script-in-browser#25208897
 	 *
@@ -345,4 +360,74 @@ class BaseHandler
 
 		return true;
 	}
+
+	/**
+	 * Copy updated files and filter unneeded legacy files
+	 *
+	 * @return $this
+	 */
+	public function afterUpdate(): array
+	{
+		$this->currentFiles = [];
+		$removedFiles = [];
+
+		// Copy any files that were changed during the update
+		foreach ($this->gatherPaths() as $path)
+		{
+			$legacy = $this->workspace . 'legacy/'  . $path['to'];
+
+			// If the file is new or changed then copy it
+			if (! is_file($legacy) || md5_file($path['from']) != md5_file($legacy))
+			{
+				$filename = $this->workspace . 'current/' . $path['to'];
+
+				// Make sure the destination directory exists
+				$dir = pathinfo($filename, PATHINFO_DIRNAME);
+				if (! file_exists($dir))
+				{
+					mkdir($dir, 0775, true);
+				}
+
+				// Copy the file, retaining the relative structure
+				copy($path['from'], $filename);
+
+				$this->currentFiles[] = $filename;
+			}
+			// If the file remained the same then remove the legacy copy
+			elseif (is_file($legacy))
+			{
+				$removedFiles[] = $legacy;
+				unlink($legacy);
+			}
+		}
+
+		// Update the array of legacy files to match the new filtered list
+		$this->legacyFiles = array_diff($this->legacyFiles, $removedFiles);
+
+		$s = $this->currentFiles == 1 ? '' : 's';
+		$this->status(count($this->currentFiles) . " updated file{$s} detected");
+
+		return $this;
+	}
+
+	/**
+	 * Call the postpatch event as needed
+	 *
+	 * @return $this
+	 */
+	public function postpatch(): array
+	{
+		$s = $this->patchedFiles == 1 ? '' : 's';
+		$this->status(count($this->patchedFiles) . "file{$s} patched");
+
+		// If events are allowed then trigger postpatch
+		if ($this->config->allowEvents)
+		{
+			// Postpatch events receive the array of patched files
+			Events::trigger('postpatch', $this->patchedFiles);
+		}
+		else
+		{
+			$this->status('Skipping postpatch event');
+		}
 }

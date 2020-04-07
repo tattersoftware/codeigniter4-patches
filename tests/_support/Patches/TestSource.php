@@ -29,9 +29,11 @@ class TestSource extends BaseSource implements SourceInterface
 	/**
 	 * Run a simulate prepatch event.
 	 *
+	 * @param array $legacyFiles  Legacy files staged by beforeUpdate
+	 *
 	 * @return bool  Whether or not the event succeeded
 	 */
-	public function prepatch(array $prepatchFiles): bool
+	public function prepatch(array $legacyFiles): bool
 	{
 		$GLOBALS['testSourceDidPrepatch'] = true;
 
