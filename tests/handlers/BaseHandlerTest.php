@@ -79,6 +79,22 @@ class BaseHandlerTest extends \Tests\Support\VirtualTestCase
 		$this->assertEquals($expected, $paths);
 	}
 
+	public function testCopyPathCreatesDirectory()
+	{
+		$patches = new BaseHandler($this->config);
+		$patches->copyPath(SUPPORTPATH . 'files/lorem.txt', VIRTUALPATH . 'foobar/lorem.txt');
+
+		$this->assertTrue(is_dir(VIRTUALPATH . 'foobar'));
+	}
+
+	public function testCopyPathCopiesFile()
+	{
+		$patches = new BaseHandler($this->config);
+		$patches->copyPath(SUPPORTPATH . 'files/lorem.txt', VIRTUALPATH . 'foobar/lorem.txt');
+
+		$this->assertTrue(is_file(VIRTUALPATH . 'foobar/lorem.txt'));
+	}
+
 	public function testCopyPathsCopiesFilesToDestination()
 	{
 		$patches = new BaseHandler($this->config);
@@ -87,19 +103,41 @@ class BaseHandlerTest extends \Tests\Support\VirtualTestCase
 		$this->assertTrue(file_exists(VIRTUALPATH . 'foo/tester/lorem.txt'));
 	}
 
-	public function CopyPathsReturnsPaths()
+	public function testCopyPathsReturnsPaths()
 	{
 		$this->config->ignoredSources[] = 'Framework';
 
 		$patches = new BaseHandler($this->config);
 
-		$patches->copyPaths(VIRTUALPATH . 'foo');
+		$paths = $patches->copyPaths(VIRTUALPATH . 'foo');
 
 		$expected = [
-			VIRTUALPATH . 'foo/tester/nested/cat.jpg',
-			VIRTUALPATH . 'foo/tester/lorem.txt',
+			'tester/nested/cat.jpg',
+			'tester/lorem.txt',
 		];
 
 		$this->assertEquals($expected, $paths);
+	}
+
+	public function testIsSameFileSucceeds()
+	{
+		$patches = new BaseHandler($this->config);
+		$patches->copyPath(SUPPORTPATH . 'files/lorem.txt', VIRTUALPATH . 'foobar/lorem.txt');
+
+		$this->assertTrue($patches->isSameFile(SUPPORTPATH . 'files/lorem.txt', VIRTUALPATH . 'foobar/lorem.txt'));
+	}
+
+	public function testIsSameFileFailsDifferentFiles()
+	{
+		$patches = new BaseHandler($this->config);
+
+		$this->assertFalse($patches->isSameFile(SUPPORTPATH . 'files/lorem.txt', SUPPORTPATH . 'files/nested/cat.jpg'));
+	}
+
+	public function testIsSameFileFailsFileMissing()
+	{
+		$patches = new BaseHandler($this->config);
+
+		$this->assertFalse($patches->isSameFile(SUPPORTPATH . 'files/lorem.txt', SUPPORTPATH . 'notafile.pdf'));
 	}
 }

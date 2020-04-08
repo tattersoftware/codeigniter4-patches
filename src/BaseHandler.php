@@ -43,18 +43,32 @@ class BaseHandler
 	protected $workspace;
 
 	/**
-	 * Array of filenames from sources before updating
+	 * Array of relative paths from sources before updating
 	 *
 	 * @var array|null
 	 */
 	public $legacyFiles;
 
 	/**
-	 * Array of filenames from sources after updating
+	 * Array of relative paths from sources after updating
 	 *
 	 * @var array|null
 	 */
 	public $currentFiles;
+
+	/**
+	 * Array of relative paths deleted by updating
+	 *
+	 * @var array|null
+	 */
+	public $deletedFiles;
+
+	/**
+	 * Array of relative paths that caused a conflict during patching
+	 *
+	 * @var array|null
+	 */
+	public $conflictFiles;
 
 	/**
 	 * Initialize the configuration and directories.
@@ -268,7 +282,7 @@ class BaseHandler
 	 *
 	 * @return bool  Same or not
 	 */
-	public function isSameFile(string $file1, string $file2): array
+	public function isSameFile(string $file1, string $file2): bool
 	{
 		return is_file($file1) && is_file($file2) && md5_file($file1) == md5_file($file2);
 	}
@@ -281,7 +295,7 @@ class BaseHandler
 	 *
 	 * @return bool  Success or failure
 	 */
-	public function copyPath(string $file1, string $file2): array
+	public function copyPath(string $file1, string $file2): bool
 	{
 		// Make sure the destination directory exists
 		$dir = pathinfo($file2, PATHINFO_DIRNAME);
@@ -299,11 +313,11 @@ class BaseHandler
 	 *
 	 * @param string $destination  Directory to copy files into
 	 *
-	 * @return array  Array of the actual new file paths
+	 * @return array  Array of the actual files copied, relative paths
 	 */
 	public function copyPaths(string $destination): array
 	{
-		$filenames   = [];
+		$files = [];
 		$destination = rtrim($destination, '/') . '/';
 
 		// Copy each file to its relative destination
@@ -313,11 +327,11 @@ class BaseHandler
 
 			if ($this->copyPath($path['from'], $filename))
 			{
-				$filenames[] = $filename;
+				$files[] = $path['to'];
 			}
 		}
 
-		return $filenames;
+		return $files;
 	}
 
 	/**
@@ -327,17 +341,19 @@ class BaseHandler
 	 */
 	public function beforeUpdate(): self
 	{
+		$destination = $this->workspace . 'legacy/';
+
 		// Copy the prepatch files and store the list
-		$this->legacyFiles = $this->copyPaths($this->workspace . 'legacy/');
+		$this->legacyFiles = $this->copyPaths($destination);
 
 		$s = $this->legacyFiles == 1 ? '' : 's';
-		$this->status(count($legacyFiles) . " legacy file{$s} copied");
+		$this->status(count($legacyFiles) . " legacy file{$s} copied to {$destination}");
 
 		// If events are allowed then trigger prepatch
 		if ($this->config->allowEvents)
 		{
 			// Prepatch events receive the array of legacy files
-			Events::trigger('prepatch', $this->legacyFiles);
+			Events::trigger('prepatch', $destination, $this->legacyFiles);
 		}
 		else
 		{
@@ -396,7 +412,7 @@ class BaseHandler
 	public function afterUpdate(): array
 	{
 		$this->currentFiles = [];
-		$removedFiles = [];
+		$unchangedFiles     = [];
 
 		// Copy any files that were changed during the update
 		foreach ($this->gatherPaths() as $path)
@@ -406,33 +422,30 @@ class BaseHandler
 			// If the file is new or changed then copy it
 			if (! $this->isSameFile($legacy, $path['from']))
 			{
-				$filename = $this->workspace . 'current/' . $path['to'];
-
-				// Make sure the destination directory exists
-				$dir = pathinfo($filename, PATHINFO_DIRNAME);
-				if (! file_exists($dir))
+				if ($this->copyPath($path['from'], $this->workspace . 'current/' . $path['to']))
 				{
-					mkdir($dir, 0775, true);
+					$this->currentFiles[] = $path['to'];
 				}
-
-				// Copy the file, retaining the relative structure
-				copy($path['from'], $filename);
-
-				$this->currentFiles[] = $filename;
 			}
 			// If the file remained the same then remove the legacy copy
 			elseif (is_file($legacy))
 			{
-				$removedFiles[] = $legacy;
+				$unchangedFiles[] = $path['to'];
 				unlink($legacy);
 			}
 		}
 
 		// Update the array of legacy files to match the new filtered list
-		$this->legacyFiles = array_diff($this->legacyFiles, $removedFiles);
+		$this->legacyFiles = array_diff($this->legacyFiles, $unchangedFiles);
 
 		$s = $this->currentFiles == 1 ? '' : 's';
 		$this->status(count($this->currentFiles) . " updated file{$s} detected");
+
+		// Check for files that have been deleted
+		$this->deletedFiles = array_diff($this->legacyFiles, $this->currentFiles);
+
+		$s = $this->deletedFiles == 1 ? '' : 's';
+		$this->status(count($this->deletedFiles) . " deleted file{$s} detected");
 
 		return $this;
 	}
@@ -457,4 +470,5 @@ class BaseHandler
 		{
 			$this->status('Skipping postpatch event');
 		}
+	}
 }

@@ -9,5 +9,5 @@ interface HandlerInterface
 	 *
 	 * @return array  Array of the actual new file paths
 	 */
-	public function patch(string $target = null): array
+	public function patch(string $target = null): array;
 }

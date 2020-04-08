@@ -10,6 +10,8 @@ class CopyHandler extends BaseHandler implements HandlerInterface
 	 */
 	public function patch(string $destination = null): array
 	{
+		$this->conflictFiles = [];
+
 		if (is_null($destination))
 		{
 			$destination = ROOTPATH;
@@ -17,18 +19,24 @@ class CopyHandler extends BaseHandler implements HandlerInterface
 		$destination = rtrim($destination, '/') . '/';
 
 		// Check every current file against the destination
-		foreach ($this->gatherPaths() as $path)
+		foreach ($this->currentFiles as $file)
 		{
-			$legacy  = $this->workspace . 'legacy/'  . $path['to'];
-			$current = $this->workspace . 'current/' . $path['to'];
-			$project = $destination . $path['to'];
+			$current = $this->workspace . 'current/' . $file;
+			$legacy  = $this->workspace . 'legacy/'  . $file;
+			$project = $destination . $file;
 
 			if (is_file($project))
 			{
-				// Check it versus the legacy version
-				if ($this->isSameFile($current, $legacy))
+				// See if it is the same as the legacy version
+				if ($this->isSameFile($project, $legacy))
 				{
-					
+					// Replace it with the new version
+					$this->copyFile($current, $project);
+				}
+				// Mark it as a conflict
+				else
+				{
+					$this->conflictFiles[] = $file;
 				}
 			}
 		}
