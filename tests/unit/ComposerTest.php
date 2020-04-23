@@ -11,7 +11,7 @@ class ComposerTest extends \Tests\Support\VirtualTestCase
 		helper('filesystem');
 
 		// Virtual paths don't support chdir() so we need to test on the filesystem
-		$this->config->composer = SUPPORTPATH . 'project/';
+		$this->config->composer = SUPPORTPATH . 'Source/Project/';
 	}
 
 	public function tearDown(): void

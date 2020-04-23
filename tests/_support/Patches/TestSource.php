@@ -21,7 +21,7 @@ class TestSource extends BaseSource implements SourceInterface
 	 */
 	public $paths = [
 		[
-			'from'    => SUPPORTPATH . 'files',
+			'from'    => VIRTUALPATH . 'Package',
 			'to'      => 'app/ThirdParty/TestSource',
 		],
 	];

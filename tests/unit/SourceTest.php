@@ -16,7 +16,7 @@ class SourceTest extends \Tests\Support\VirtualTestCase
 
 		$patches = new BaseHandler($this->config);
 
-		$result  = Events::trigger('prepatch', VIRTUALPATH, []);
+		$result  = Events::trigger('prepatch', $this->project, []);
 
 		$this->assertTrue($result);
 		$this->assertTrue($GLOBALS['testSourceDidPrepatch']);

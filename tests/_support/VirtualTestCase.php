@@ -11,7 +11,7 @@ class VirtualTestCase extends CIUnitTestCase
 	protected $root;
 
 	/**
-	 * @var string  Path to the mock project
+	 * @var string  Path to the virtual project
 	 */
 	protected $project;
 
@@ -19,15 +19,17 @@ class VirtualTestCase extends CIUnitTestCase
 	{
 		parent::setUp();
 
+		// Create the VFS
 		$this->root = vfsStream::setup();
-		$this->root = vfsStream::copyFromFileSystem(SUPPORTPATH . 'project', $this->root);
+		vfsStream::copyFromFileSystem(SUPPORTPATH . 'Source', $this->root);
 
 		defined('VIRTUALPATH') || define('VIRTUALPATH', $this->root->url() . '/');
+		$this->project = VIRTUALPATH . 'Project/';
 
-		// Standard testing config
+		// Standardize testing config
 		$this->config           = new \Tatter\Patches\Config\Patches();
-		$this->config->basePath = VIRTUALPATH . 'writable/patches';
-		$this->config->composer = VIRTUALPATH;
+		$this->config->basePath = $this->project . 'writable/patches';
+		$this->config->composer = $this->project;
 	}
 
 	public function tearDown(): void
