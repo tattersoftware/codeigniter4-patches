@@ -253,12 +253,15 @@ class BaseHandler
 					$path['from'] = rtrim(realpath($path['from']), '/') . '/';
 
 					// Get individual filenames
-					foreach (get_filenames($path['from'], true) as $filename)
+					foreach (get_filenames($path['from'], null, true) as $filename)
 					{
-						$paths[] = [
-							'from' => $filename,
-							'to'   => $path['to'] . str_replace($path['from'], '', $filename),
-						];
+						if (is_file($path['from'] . $filename))
+						{
+							$paths[] = [
+								'from' => $path['from'] . $filename,
+								'to'   => $path['to'] . $filename,
+							];
+						}
 					}
 				}
 				elseif (is_file($path['from']))
@@ -297,6 +300,11 @@ class BaseHandler
 	 */
 	public function copyPath(string $file1, string $file2): bool
 	{
+		if (! is_file($file1))
+		{
+			return false;
+		}
+
 		// Make sure the destination directory exists
 		$dir = pathinfo($file2, PATHINFO_DIRNAME);
 		if (! file_exists($dir))
@@ -305,7 +313,14 @@ class BaseHandler
 		}
 
 		// Copy the file
-		return copy($file1, $file2);
+		try
+		{
+			return copy($file1, $file2);
+		}
+		catch (\Throwable $e)
+		{
+			return false;
+		}
 	}
 
 	/**
@@ -347,7 +362,7 @@ class BaseHandler
 		$this->legacyFiles = $this->copyPaths($destination);
 
 		$s = $this->legacyFiles == 1 ? '' : 's';
-		$this->status(count($legacyFiles) . " legacy file{$s} copied to {$destination}");
+		$this->status(count($this->legacyFiles) . " legacy file{$s} copied to {$destination}");
 
 		// If events are allowed then trigger prepatch
 		if ($this->config->allowEvents)
