@@ -66,16 +66,20 @@ class BaseHandlerTest extends \Tests\Support\VirtualTestCase
 
 		$expected = [
 			[
-				'from' => SUPPORTPATH . 'files/nested/cat.jpg',
-				'to'   => 'tester/nested/cat.jpg',
+				'from' => SUPPORTPATH . 'files/images/cat.jpg',
+				'to'   => 'app/ThirdParty/TestSource/images/cat.jpg',
 			],
 			[
 				'from' => SUPPORTPATH . 'files/lorem.txt',
-				'to'   => 'tester/lorem.txt',
+				'to'   => 'app/ThirdParty/TestSource/lorem.txt',
+			],
+			[
+				'from' => SUPPORTPATH . 'files/static.js',
+				'to'   => 'app/ThirdParty/TestSource/static.js',
 			],
 		];
 
-		$this->assertCount(2, $paths);
+		$this->assertCount(3, $paths);
 		$this->assertEquals($expected, $paths);
 	}
 
@@ -100,7 +104,7 @@ class BaseHandlerTest extends \Tests\Support\VirtualTestCase
 		$patches = new BaseHandler($this->config);
 		$patches->copyPaths(VIRTUALPATH . 'foo');
 
-		$this->assertTrue(file_exists(VIRTUALPATH . 'foo/tester/lorem.txt'));
+		$this->assertTrue(file_exists(VIRTUALPATH . 'foo/app/ThirdParty/TestSource/lorem.txt'));
 	}
 
 	public function testCopyPathsReturnsPaths()
@@ -112,8 +116,9 @@ class BaseHandlerTest extends \Tests\Support\VirtualTestCase
 		$paths = $patches->copyPaths(VIRTUALPATH . 'foo');
 
 		$expected = [
-			'tester/nested/cat.jpg',
-			'tester/lorem.txt',
+			'app/ThirdParty/TestSource/images/cat.jpg',
+			'app/ThirdParty/TestSource/lorem.txt',
+			'app/ThirdParty/TestSource/static.js',
 		];
 
 		$this->assertEquals($expected, $paths);
@@ -131,7 +136,7 @@ class BaseHandlerTest extends \Tests\Support\VirtualTestCase
 	{
 		$patches = new BaseHandler($this->config);
 
-		$this->assertFalse($patches->isSameFile(SUPPORTPATH . 'files/lorem.txt', SUPPORTPATH . 'files/nested/cat.jpg'));
+		$this->assertFalse($patches->isSameFile(SUPPORTPATH . 'files/lorem.txt', SUPPORTPATH . 'files/images/cat.jpg'));
 	}
 
 	public function testIsSameFileFailsFileMissing()

@@ -22,7 +22,7 @@ class TestSource extends BaseSource implements SourceInterface
 	public $paths = [
 		[
 			'from'    => SUPPORTPATH . 'files',
-			'to'      => 'tester',
+			'to'      => 'app/ThirdParty/TestSource',
 		],
 	];
 
