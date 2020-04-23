@@ -15,6 +15,11 @@ class VirtualTestCase extends CIUnitTestCase
 	 */
 	protected $project;
 
+	/**
+	 * @var string  Path to the virtual pacakge source
+	 */
+	protected $source;
+
 	public function setUp(): void
 	{
 		parent::setUp();
@@ -25,6 +30,7 @@ class VirtualTestCase extends CIUnitTestCase
 
 		defined('VIRTUALPATH') || define('VIRTUALPATH', $this->root->url() . '/');
 		$this->project = VIRTUALPATH . 'Project/';
+		$this->source  = VIRTUALPATH . 'Package/';
 
 		// Standardize testing config
 		$this->config           = new \Tatter\Patches\Config\Patches();
