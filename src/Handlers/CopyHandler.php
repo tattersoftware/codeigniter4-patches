@@ -40,5 +40,7 @@ class CopyHandler extends BaseHandler implements HandlerInterface
 				}
 			}
 		}
+
+		return [];
 	}
 }

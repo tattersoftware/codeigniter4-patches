@@ -250,7 +250,8 @@ class BaseHandler
 
 				if (is_dir($path['from']))
 				{
-					$path['from'] = rtrim(realpath($path['from']), '/') . '/';
+					$path['from'] = realpath($path['from']) ?: $path['from'];
+					$path['from'] = rtrim($path['from'], '/') . '/';
 
 					// Get individual filenames
 					foreach (get_filenames($path['from'], null, true) as $filename)
@@ -424,7 +425,7 @@ class BaseHandler
 	 *
 	 * @return $this
 	 */
-	public function afterUpdate(): array
+	public function afterUpdate(): self
 	{
 		$this->currentFiles = [];
 		$unchangedFiles     = [];
