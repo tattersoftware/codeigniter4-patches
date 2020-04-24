@@ -14,12 +14,10 @@ class AfterUpdateTest extends \Tests\Support\VirtualTestCase
 		$this->patches = new BaseHandler($this->config);
 		$this->patches->beforeUpdate();
 
-		// Stage some changes to the package
-		file_put_contents($this->source . 'lorem.txt', 'All your base are belong to us.');
-		unlink($this->source . 'images/cat.jpg');
+		$this->mockUpdate();
 	}
 
-	public function testAfterUpdateSetsCurrentFiles()
+	public function testAfterUpdateSetsChangedFiles()
 	{
 		$this->patches->afterUpdate();
 
@@ -27,7 +25,7 @@ class AfterUpdateTest extends \Tests\Support\VirtualTestCase
 			'app/ThirdParty/TestSource/lorem.txt',
 		];
 
-		$this->assertEquals($expected, $this->patches->currentFiles);
+		$this->assertEquals($expected, $this->patches->changedFiles);
 	}
 
 	public function testAfterUpdateCreatesCurrent()
@@ -37,11 +35,29 @@ class AfterUpdateTest extends \Tests\Support\VirtualTestCase
 		$this->assertDirectoryExists($this->patches->getWorkspace() . 'current');
 	}
 
-	public function testAfterUpdateCopiesFiles()
+	public function testAfterUpdateCopiesChangedFiles()
 	{
 		$this->patches->afterUpdate();
 
 		$this->assertFileExists($this->patches->getWorkspace() . 'current/app/ThirdParty/TestSource/lorem.txt');
+	}
+
+	public function testAfterUpdateSetsAddedFiles()
+	{
+		$this->patches->afterUpdate();
+
+		$expected = [
+			'app/ThirdParty/TestSource/src/codex.json',
+		];
+
+		$this->assertEquals($expected, $this->patches->addedFiles);
+	}
+
+	public function testAfterUpdateCopiesAddedFiles()
+	{
+		$this->patches->afterUpdate();
+
+		$this->assertFileExists($this->patches->getWorkspace() . 'current/app/ThirdParty/TestSource/src/codex.json');
 	}
 
 	public function testAfterUpdateSetsDeletedFiles()

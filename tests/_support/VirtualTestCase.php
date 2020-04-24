@@ -44,4 +44,20 @@ class VirtualTestCase extends CIUnitTestCase
 
 		$this->root = null;
 	}
+
+	/**
+	 * Composer will not run on VFS so this provides a way to mock package updates.
+	 */
+	public function mockUpdate(): void
+	{
+		// Change a file
+		file_put_contents($this->source . 'lorem.txt', 'All your base are belong to us.');
+
+		// Add a file
+		mkdir($this->source . 'src', 0700);
+		file_put_contents($this->source . 'src/codex.json', '{"packages": {"tatter": "Patches"}}');
+
+		// Remove a file
+		unlink($this->source . 'images/cat.jpg');
+	}
 }

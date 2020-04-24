@@ -18,8 +18,8 @@ class CopyHandler extends BaseHandler implements HandlerInterface
 		}
 		$destination = rtrim($destination, '/') . '/';
 
-		// Check every current file against the destination
-		foreach ($this->currentFiles as $file)
+		// Check every changed file against the destination
+		foreach ($this->changedFiles as $file)
 		{
 			$current = $this->workspace . 'current/' . $file;
 			$legacy  = $this->workspace . 'legacy/'  . $file;

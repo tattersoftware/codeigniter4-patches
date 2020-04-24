@@ -50,14 +50,21 @@ class BaseHandler
 	public $legacyFiles;
 
 	/**
-	 * Array of relative paths from sources after updating
+	 * Array of relative paths to files changed by updating
 	 *
 	 * @var array|null
 	 */
-	public $currentFiles;
+	public $changedFiles;
 
 	/**
-	 * Array of relative paths deleted by updating
+	 * Array of relative paths to files added by updating
+	 *
+	 * @var array|null
+	 */
+	public $addedFiles;
+
+	/**
+	 * Array of relative paths to files deleted by updating
 	 *
 	 * @var array|null
 	 */
@@ -427,7 +434,9 @@ class BaseHandler
 	 */
 	public function afterUpdate(): self
 	{
-		$this->currentFiles = [];
+		$this->changedFiles = [];
+		$this->addedFiles   = [];
+		$this->deletedFiles = [];
 		$unchangedFiles     = [];
 
 		// Copy any files that were changed during the update
@@ -440,7 +449,15 @@ class BaseHandler
 			{
 				if ($this->copyPath($path['from'], $this->workspace . 'current/' . $path['to']))
 				{
-					$this->currentFiles[] = $path['to'];
+					// Add it to the appropriate list
+					if (is_file($legacy))
+					{
+						$this->changedFiles[] = $path['to'];
+					}
+					else
+					{
+						$this->addedFiles[] = $path['to'];
+					}
 				}
 			}
 			// If the file remained the same then remove the legacy copy
@@ -454,11 +471,11 @@ class BaseHandler
 		// Update the array of legacy files to match the new filtered list
 		$this->legacyFiles = array_diff($this->legacyFiles, $unchangedFiles);
 
-		$s = $this->currentFiles == 1 ? '' : 's';
-		$this->status(count($this->currentFiles) . " updated file{$s} detected");
+		$s = $this->changedFiles == 1 ? '' : 's';
+		$this->status(count($this->changedFiles) . " changed file{$s} detected");
 
 		// Check for files that have been deleted
-		$this->deletedFiles = array_diff($this->legacyFiles, $this->currentFiles);
+		$this->deletedFiles = array_diff($this->legacyFiles, $this->changedFiles);
 
 		$s = $this->deletedFiles == 1 ? '' : 's';
 		$this->status(count($this->deletedFiles) . " deleted file{$s} detected");
