@@ -27,10 +27,10 @@ class CopyHandler extends BaseHandler implements HandlerInterface
 			$project = $destination . $file;
 
 			// Check if the project is missing this file or has the legacy version
-			if (! file_exists($project) || $this->isSameFile($project, $legacy))
+			if (! file_exists($project) || same_file($project, $legacy))
 			{
 				// Copy in the new version
-				$this->copyPath($current, $project);
+				copy_path($current, $project);
 				$this->patchedFiles[] = $file;
 			}
 			// Mark it as a conflict
@@ -49,7 +49,7 @@ class CopyHandler extends BaseHandler implements HandlerInterface
 			if (is_file($project))
 			{
 				// See if it is already the same
-				if (! $this->isSameFile($project, $current))
+				if (! same_file($project, $current))
 				{
 					// Mark it as a conflict
 					$this->conflictFiles[] = $file;
@@ -57,7 +57,7 @@ class CopyHandler extends BaseHandler implements HandlerInterface
 			}
 			else
 			{
-				$this->copyPath($current, $project);
+				copy_path($current, $project);
 				$this->patchedFiles[] = $file;
 			}
 		}

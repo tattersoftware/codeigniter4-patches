@@ -84,7 +84,7 @@ class BaseHandler
 	 */
 	public function __construct(BaseConfig $config = null)
 	{
-		helper('filesystem');
+		helper(['filesystem', 'patches']);
 
 		$this->config = $config ?? config('Patches');
 
@@ -286,52 +286,6 @@ class BaseHandler
 	}
 
 	/**
-	 * Checks if two files both exist and have identical hashes
-	 *
-	 * @param string $file1
-	 * @param string $file2
-	 *
-	 * @return bool  Same or not
-	 */
-	public function isSameFile(string $file1, string $file2): bool
-	{
-		return is_file($file1) && is_file($file2) && md5_file($file1) == md5_file($file2);
-	}
-
-	/**
-	 * Copies a file to a destination creating directories as needed
-	 *
-	 * @param string $file1  Full path to the file
-	 * @param string $file2  Full path to the new file
-	 *
-	 * @return bool  Success or failure
-	 */
-	public function copyPath(string $file1, string $file2): bool
-	{
-		if (! is_file($file1))
-		{
-			return false;
-		}
-
-		// Make sure the destination directory exists
-		$dir = pathinfo($file2, PATHINFO_DIRNAME);
-		if (! file_exists($dir))
-		{
-			mkdir($dir, 0775, true);
-		}
-
-		// Copy the file
-		try
-		{
-			return copy($file1, $file2);
-		}
-		catch (\Throwable $e)
-		{
-			return false;
-		}
-	}
-
-	/**
 	 * Copy each path to its relative destination.
 	 *
 	 * @param string $destination  Directory to copy files into
@@ -348,7 +302,7 @@ class BaseHandler
 		{
 			$filename = $destination . $path['to'];
 
-			if ($this->copyPath($path['from'], $filename))
+			if (copy_path($path['from'], $filename))
 			{
 				$files[] = $path['to'];
 			}
@@ -445,9 +399,9 @@ class BaseHandler
 			$legacy = $this->workspace . 'legacy/'  . $path['to'];
 
 			// If the file is new or changed then copy it
-			if (! $this->isSameFile($legacy, $path['from']))
+			if (! same_file($legacy, $path['from']))
 			{
-				if ($this->copyPath($path['from'], $this->workspace . 'current/' . $path['to']))
+				if (copy_path($path['from'], $this->workspace . 'current/' . $path['to']))
 				{
 					// Add it to the appropriate list
 					if (is_file($legacy))

@@ -83,22 +83,6 @@ class BaseHandlerTest extends \Tests\Support\VirtualTestCase
 		$this->assertEquals($expected, $paths);
 	}
 
-	public function testCopyPathCreatesDirectory()
-	{
-		$patches = new BaseHandler($this->config);
-		$patches->copyPath(SUPPORTPATH . 'Source/Package/lorem.txt', VIRTUALPATH . 'foobar/lorem.txt');
-
-		$this->assertDirectoryExists(VIRTUALPATH . 'foobar');
-	}
-
-	public function testCopyPathCopiesFile()
-	{
-		$patches = new BaseHandler($this->config);
-		$patches->copyPath(SUPPORTPATH . 'Source/Package/lorem.txt', VIRTUALPATH . 'foobar/lorem.txt');
-
-		$this->assertFileExists(VIRTUALPATH . 'foobar/lorem.txt');
-	}
-
 	public function testCopyPathsCopiesFilesToDestination()
 	{
 		$patches = new BaseHandler($this->config);
@@ -122,27 +106,5 @@ class BaseHandlerTest extends \Tests\Support\VirtualTestCase
 		];
 
 		$this->assertEquals($expected, $paths);
-	}
-
-	public function testIsSameFileSucceeds()
-	{
-		$patches = new BaseHandler($this->config);
-		$patches->copyPath(SUPPORTPATH . 'Source/Package/lorem.txt', VIRTUALPATH . 'foobar/lorem.txt');
-
-		$this->assertTrue($patches->isSameFile(SUPPORTPATH . 'Source/Package/lorem.txt', VIRTUALPATH . 'foobar/lorem.txt'));
-	}
-
-	public function testIsSameFileFailsDifferentFiles()
-	{
-		$patches = new BaseHandler($this->config);
-
-		$this->assertFalse($patches->isSameFile(SUPPORTPATH . 'Source/Package/lorem.txt', SUPPORTPATH . 'files/images/cat.jpg'));
-	}
-
-	public function testIsSameFileFailsFileMissing()
-	{
-		$patches = new BaseHandler($this->config);
-
-		$this->assertFalse($patches->isSameFile(SUPPORTPATH . 'Source/Package/lorem.txt', SUPPORTPATH . 'notafile.pdf'));
 	}
 }
