@@ -10,6 +10,7 @@ class CopyHandler extends BaseHandler implements HandlerInterface
 	 */
 	public function patch(string $destination = null): array
 	{
+		$this->patchedFiles  = [];
 		$this->conflictFiles = [];
 
 		if (is_null($destination))
@@ -25,21 +26,44 @@ class CopyHandler extends BaseHandler implements HandlerInterface
 			$legacy  = $this->workspace . 'legacy/'  . $file;
 			$project = $destination . $file;
 
+			// Check if the project is missing this file or has the legacy version
+			if (! file_exists($project) || $this->isSameFile($project, $legacy))
+			{
+				// Copy in the new version
+				$this->copyPath($current, $project);
+				$this->patchedFiles[] = $file;
+			}
+			// Mark it as a conflict
+			else
+			{
+				$this->conflictFiles[] = $file;
+			}
+		}
+
+		// Try to copy in every added file
+		foreach ($this->addedFiles as $file)
+		{
+			$current = $this->workspace . 'current/' . $file;
+			$project = $destination . $file;
+
 			if (is_file($project))
 			{
-				// See if it is the same as the legacy version
-				if ($this->isSameFile($project, $legacy))
+				// See if it is already the same
+				if (! $this->isSameFile($project, $current))
 				{
-					// Replace it with the new version
-					$this->copyFile($current, $project);
-				}
-				// Mark it as a conflict
-				else
-				{
+					// Mark it as a conflict
 					$this->conflictFiles[] = $file;
 				}
 			}
+			else
+			{
+				$this->copyPath($current, $project);
+				$this->patchedFiles[] = $file;
+			}
 		}
+
+		// Add deleted files to the conflict list for now
+		$this->conflictFiles = array_merge($this->conflictFiles, $this->deletedFiles);
 
 		return [];
 	}

@@ -15,14 +15,14 @@ class BaseHandlerTest extends \Tests\Support\VirtualTestCase
 	{
 		$patches = new BaseHandler($this->config);
 
-		$this->assertTrue(is_dir($this->config->basePath));
+		$this->assertDirectoryExists($this->config->basePath);
 	}
 
 	public function testGetWorkspace()
 	{
 		$patches = new BaseHandler($this->config);
 
-		$this->assertTrue(is_dir($patches->getWorkspace()));
+		$this->assertDirectoryExists($patches->getWorkspace());
 	}
 
 	public function testSetWorkspaceCreatesDirectory()
@@ -31,7 +31,7 @@ class BaseHandlerTest extends \Tests\Support\VirtualTestCase
 
 		$patches->setWorkspace(VIRTUALPATH . 'foo');
 
-		$this->assertTrue(is_dir(VIRTUALPATH . 'foo'));
+		$this->assertDirectoryExists(VIRTUALPATH . 'foo');
 	}
 
 	public function testGatherSourcesFindsAll()
@@ -88,7 +88,7 @@ class BaseHandlerTest extends \Tests\Support\VirtualTestCase
 		$patches = new BaseHandler($this->config);
 		$patches->copyPath(SUPPORTPATH . 'Source/Package/lorem.txt', VIRTUALPATH . 'foobar/lorem.txt');
 
-		$this->assertTrue(is_dir(VIRTUALPATH . 'foobar'));
+		$this->assertDirectoryExists(VIRTUALPATH . 'foobar');
 	}
 
 	public function testCopyPathCopiesFile()
@@ -96,7 +96,7 @@ class BaseHandlerTest extends \Tests\Support\VirtualTestCase
 		$patches = new BaseHandler($this->config);
 		$patches->copyPath(SUPPORTPATH . 'Source/Package/lorem.txt', VIRTUALPATH . 'foobar/lorem.txt');
 
-		$this->assertTrue(is_file(VIRTUALPATH . 'foobar/lorem.txt'));
+		$this->assertFileExists(VIRTUALPATH . 'foobar/lorem.txt');
 	}
 
 	public function testCopyPathsCopiesFilesToDestination()
@@ -104,7 +104,7 @@ class BaseHandlerTest extends \Tests\Support\VirtualTestCase
 		$patches = new BaseHandler($this->config);
 		$patches->copyPaths(VIRTUALPATH . 'foo');
 
-		$this->assertTrue(file_exists(VIRTUALPATH . 'foo/app/ThirdParty/TestSource/lorem.txt'));
+		$this->assertFileExists(VIRTUALPATH . 'foo/app/ThirdParty/TestSource/lorem.txt');
 	}
 
 	public function testCopyPathsReturnsPaths()
