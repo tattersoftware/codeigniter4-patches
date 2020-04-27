@@ -5,11 +5,18 @@ use CodeIgniter\Config\BaseConfig;
 class Patches extends BaseConfig
 {
 	/**
-	 * Full class name of the handler to use
+	 * Full class name of the update handler to use
 	 *
 	 * @var string
 	 */
-	public $handler = 'Tatter\Patches\Handlers\CopyHandler';
+	public $updater = 'Tatter\Patches\Handlers\Updaters\ComposerHandler';
+
+	/**
+	 * Full class name of the merge handler to use
+	 *
+	 * @var string
+	 */
+	public $merger = 'Tatter\Patches\Handlers\Mergers\CopyHandler';
 
 	/**
 	 * Path to the base directory for workspaces.
@@ -17,6 +24,13 @@ class Patches extends BaseConfig
 	 * @var string
 	 */
 	public $basePath = WRITEPATH . 'patches';
+
+	/**
+	 * Path to the project to patch.
+	 *
+	 * @var string
+	 */
+	public $destination = ROOTPATH;
 
 	/**
 	 * Path to the directory containing composer.json.

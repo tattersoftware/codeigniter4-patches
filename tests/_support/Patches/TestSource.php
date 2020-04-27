@@ -1,7 +1,7 @@
 <?php namespace Tests\Support\Patches;
 
 use Tatter\Patches\BaseSource;
-use Tatter\Patches\Interfaces\SourceInterface;;
+use Tatter\Patches\Interfaces\SourceInterface;
 
 class TestSource extends BaseSource implements SourceInterface
 {

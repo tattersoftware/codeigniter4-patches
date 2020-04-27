@@ -3,16 +3,15 @@
 use CodeIgniter\CLI\CLI;
 use CodeIgniter\Config\BaseConfig;
 use CodeIgniter\Events\Events;
-use Composer\Console\Application;
-use Symfony\Component\Console\Input\ArrayInput;
+use Tatter\Patches\Exceptions\ExceptionInterface;
 use Tatter\Patches\Interfaces\SourceInterface;
 
 /**
- * Class BaseHandler
+ * Class Patches
  *
- * Common functions to interface with patch definitions for project updates.
+ * Library to implement patch sources for project updates.
  */
-class BaseHandler
+class Patches
 {
 	/**
 	 * Config file to use.
@@ -38,7 +37,7 @@ class BaseHandler
 	/**
 	 * Path to the working directory.
 	 *
-	 * @var Tatter\Patches\Config\Patches
+	 * @var string
 	 */
 	protected $workspace;
 
@@ -93,7 +92,7 @@ class BaseHandler
 	}
 
 	/**
-	 * Execute a patch request.
+	 * Run through the entire patch process.
 	 *
 	 * @return bool  Whether or not the patch succeeded
 	 */
@@ -104,15 +103,14 @@ class BaseHandler
 		// Copy legacy files and trigger the prepatch event
 		$this->beforeUpdate();
 
-		// Run Composer update
-		$this->composerUpdate();
+		// Update the vendor packages
+		$this->update();
 
 		// Check for and copy updated files
 		$this->afterUpdate();
 
-		// Call the child handler's patching method
-		$this->patch();
-		$this->postpatch();
+		// Call the chosen merging method
+		$this->merge();
 
 		return $result;
 	}
@@ -341,40 +339,21 @@ class BaseHandler
 	}
 
 	/**
-	 * Call Composer programmatically to update all vendor files
-	 * https://stackoverflow.com/questions/17219436/run-composer-with-a-php-script-in-browser#25208897
+	 * Call the chosen handler to update vendor sources.
 	 *
 	 * @return bool  True if the update succeeds
 	 */
-	public function composerUpdate(): bool
+	public function update(): bool
 	{
-		$application = new Application();
-		$params      = [
-			'command'       => 'update',
-			'--working-dir' => $this->config->composer,
-		];
-		
-		// Suppress Composer output during testing
-		if (ENVIRONMENT === 'testing')
+		$updater = new $this->config->updater();
+
+		try
 		{
-			$params['--quiet'] = true;
+			$updater->run();
 		}
-		else
+		catch (ExceptionInterface $e)
 		{
-			$params['--verbose'] = true;
-		}
-
-		$input = new ArrayInput($params);
-
-		// Prevent $application->run() from exiting the script
-		$application->setAutoExit(false);
-
-		// Returns int 0 if everything went fine, or an error code
-		$result = $application->run($input);
-
-		if ($result !== 0)
-		{
-			$this->status('Composer failed with error code ' . $result, true);
+			$this->status($e->getMessage(), true);
 			return false;
 		}
 
@@ -438,12 +417,27 @@ class BaseHandler
 	}
 
 	/**
-	 * Call the postpatch event as needed
+	 * Run the patch handler and call the postpatch event (as needed)
 	 *
 	 * @return $this
 	 */
-	public function postpatch(): array
+	public function merge(): array
 	{
+		// Ensure a trailing slash on the destination
+		$this->config->destination = rtrim($this->config->destination, '/') . '/';
+
+		$merger = new $this->config->merger();
+
+		try
+		{
+			$merger->run($this);
+		}
+		catch (ExceptionInterface $e)
+		{
+			$this->status($e->getMessage(), true);
+			return false;
+		}
+		
 		$s = $this->patchedFiles == 1 ? '' : 's';
 		$this->status(count($this->patchedFiles) . "file{$s} patched");
 

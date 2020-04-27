@@ -1,6 +1,8 @@
 <?php
 
-use Tatter\Patches\BaseHandler;
+use Tatter\Patches\Exceptions\UpdateException;
+use Tatter\Patches\Patches;
+use Tatter\Patches\Handlers\Updaters\ComposerHandler;
 
 class ComposerTest extends \Tests\Support\VirtualTestCase
 {
@@ -9,6 +11,8 @@ class ComposerTest extends \Tests\Support\VirtualTestCase
 		parent::setUp();
 
 		helper('filesystem');
+
+		$this->config->updater = 'Tatter\Patches\Handlers\Updaters\ComposerHandler';
 
 		// Virtual paths don't support chdir() so we need to test on the filesystem
 		$this->config->composer = SUPPORTPATH . 'Source/Project/';
@@ -33,8 +37,7 @@ class ComposerTest extends \Tests\Support\VirtualTestCase
 
 	public function testComposerSucceeds()
 	{
-		$patches = new BaseHandler($this->config);
-		$result  = $patches->composerUpdate();
+		$handler = new Patches(new ComposerHandler($this->config));
 
 		$this->assertTrue($result);
 	}
@@ -43,19 +46,16 @@ class ComposerTest extends \Tests\Support\VirtualTestCase
 	{
 		$this->config->composer = '/foo/bar';
 
-		$patches = new BaseHandler($this->config);
-		$result  = $patches->composerUpdate();
+		$this->expectException(UpdateException::class);
+		$this->expectExceptionMessage(lang('Patches.composerFailure', [1]));
 
-		$this->assertFalse($result);
-		
-		$errors = $patches->getErrors();
-		$this->assertCount(1, $errors);
+		$handler->run($this->config);
 	}
 
 	public function testComposerCreatesVendor()
 	{
-		$patches = new BaseHandler($this->config);
-		$patches->composerUpdate();
+		$handler = new ComposerHandler();
+		$handler->run($this->config);
 
 		$this->assertTrue(is_dir($this->config->composer . 'vendor'));
 	}
