@@ -14,13 +14,6 @@ use Tatter\Patches\Interfaces\SourceInterface;
 class Patches
 {
 	/**
-	 * Config file to use.
-	 *
-	 * @var Tatter\Patches\Config\Patches
-	 */
-	protected $config;
-
-	/**
 	 * Error messages from the last call
 	 *
 	 * @var array
@@ -35,11 +28,18 @@ class Patches
 	protected $sources = [];
 
 	/**
+	 * Config file to use.
+	 *
+	 * @var Tatter\Patches\Config\Patches
+	 */
+	public $config;
+
+	/**
 	 * Path to the working directory.
 	 *
 	 * @var string
 	 */
-	protected $workspace;
+	public $workspace;
 
 	/**
 	 * Array of relative paths from sources before updating
@@ -419,9 +419,9 @@ class Patches
 	/**
 	 * Run the patch handler and call the postpatch event (as needed)
 	 *
-	 * @return $this
+	 * @return bool  Success or failure
 	 */
-	public function merge(): array
+	public function merge(): bool
 	{
 		// Ensure a trailing slash on the destination
 		$this->config->destination = rtrim($this->config->destination, '/') . '/';
@@ -451,5 +451,7 @@ class Patches
 		{
 			$this->status('Skipping postpatch event');
 		}
+
+		return true;
 	}
 }

@@ -9,5 +9,5 @@ interface MergerInterface
 	 *
 	 * @param Patches $patches  Instance of the library to run against
 	 */
-	public function run(&Patches $patches);
+	public function run(Patches &$patches);
 }

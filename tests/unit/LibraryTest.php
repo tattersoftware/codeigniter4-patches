@@ -1,8 +1,8 @@
 <?php
 
-use Tatter\Patches\BaseHandler;
+use Tatter\Patches\Patches;
 
-class BaseHandlerTest extends \Tests\Support\VirtualTestCase
+class LibraryTest extends \Tests\Support\VirtualTestCase
 {
 	public function testIsDefinedVirtualPath()
 	{
@@ -13,21 +13,21 @@ class BaseHandlerTest extends \Tests\Support\VirtualTestCase
 
 	public function testConstructCreatesWorkspace()
 	{
-		$patches = new BaseHandler($this->config);
+		$patches = new Patches($this->config);
 
 		$this->assertDirectoryExists($this->config->basePath);
 	}
 
 	public function testGetWorkspace()
 	{
-		$patches = new BaseHandler($this->config);
+		$patches = new Patches($this->config);
 
 		$this->assertDirectoryExists($patches->getWorkspace());
 	}
 
 	public function testSetWorkspaceCreatesDirectory()
 	{
-		$patches = new BaseHandler($this->config);
+		$patches = new Patches($this->config);
 
 		$patches->setWorkspace(VIRTUALPATH . 'foo');
 
@@ -36,7 +36,7 @@ class BaseHandlerTest extends \Tests\Support\VirtualTestCase
 
 	public function testGatherSourcesFindsAll()
 	{
-		$patches = new BaseHandler($this->config);
+		$patches = new Patches($this->config);
 
 		$this->assertEquals(['TestSource', 'Framework'], array_keys($patches->getSources()));
 	}
@@ -44,14 +44,14 @@ class BaseHandlerTest extends \Tests\Support\VirtualTestCase
 	public function testIgnoringSkipsSource()
 	{
 		$this->config->ignoredSources[] = 'Framework';
-		$patches = new BaseHandler($this->config);
+		$patches = new Patches($this->config);
 
 		$this->assertEquals(['TestSource'], array_keys($patches->getSources()));	
 	}
 
 	public function testGetSourcesReturnsInstances()
 	{
-		$patches = new BaseHandler($this->config);
+		$patches = new Patches($this->config);
 		$sources = $patches->getSources();
 
 		$this->assertInstanceOf('Tatter\Patches\Interfaces\SourceInterface', reset($sources));
@@ -61,7 +61,7 @@ class BaseHandlerTest extends \Tests\Support\VirtualTestCase
 	{
 		$this->config->ignoredSources[] = 'Framework';
 
-		$patches = new BaseHandler($this->config);
+		$patches = new Patches($this->config);
 		$paths   = $patches->gatherPaths();
 
 		$expected = [
@@ -85,7 +85,7 @@ class BaseHandlerTest extends \Tests\Support\VirtualTestCase
 
 	public function testCopyPathsCopiesFilesToDestination()
 	{
-		$patches = new BaseHandler($this->config);
+		$patches = new Patches($this->config);
 		$patches->copyPaths(VIRTUALPATH . 'foo');
 
 		$this->assertFileExists(VIRTUALPATH . 'foo/app/ThirdParty/TestSource/lorem.txt');
@@ -95,7 +95,7 @@ class BaseHandlerTest extends \Tests\Support\VirtualTestCase
 	{
 		$this->config->ignoredSources[] = 'Framework';
 
-		$patches = new BaseHandler($this->config);
+		$patches = new Patches($this->config);
 
 		$paths = $patches->copyPaths(VIRTUALPATH . 'foo');
 

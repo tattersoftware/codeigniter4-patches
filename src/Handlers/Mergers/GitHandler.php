@@ -1,14 +1,15 @@
 <?php namespace Tatter\Patches\Handlers\Patchers;
 
-use Tatter\Patches\BaseHandler;
-use Tatter\Patches\Interfaces\PatcherInterface;
+use Tatter\Patches\Patches;
+use Tatter\Patches\Interfaces\MergerInterface;
 
-class GitHandler extends BaseHandler implements PatcherInterface
+class GitHandler implements MergerInterface
 {
 	/**
 	 * Compare each updated file with its prepatch equivalent.
+	 * @param Patches $patches  Instance of the library to run against
 	 */
-	public function run(string $target = null): array
+	public function run(Patches &$patches)
 	{
 		
 	}

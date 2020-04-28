@@ -1,6 +1,7 @@
-<?php namespace Tatter\Patches\Handlers\Patchers;
+<?php namespace Tatter\Patches\Handlers\Mergers;
 
 use Tatter\Patches\Interfaces\MergerInterface;
+use Tatter\Patches\Patches;
 
 class CopyHandler implements MergerInterface
 {
@@ -9,7 +10,7 @@ class CopyHandler implements MergerInterface
 	 *
 	 * @param Patches $patches  Instance of the library to run against
 	 */
-	public function run(&Patches $patches)
+	public function run(Patches &$patches)
 	{
 		$patches->patchedFiles  = [];
 		$patches->conflictFiles = [];
@@ -19,7 +20,7 @@ class CopyHandler implements MergerInterface
 		{
 			$current = $patches->workspace . 'current/' . $file;
 			$legacy  = $patches->workspace . 'legacy/'  . $file;
-			$project = $destination . $file;
+			$project = $patches->config->rootPath . $file;
 
 			// Check if the project is missing this file or has the legacy version
 			if (! file_exists($project) || same_file($project, $legacy))
@@ -39,7 +40,7 @@ class CopyHandler implements MergerInterface
 		foreach ($patches->addedFiles as $file)
 		{
 			$current = $patches->workspace . 'current/' . $file;
-			$project = $destination . $file;
+			$project = $patches->config->rootPath . $file;
 
 			if (is_file($project))
 			{

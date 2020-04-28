@@ -3,11 +3,10 @@
 use CodeIgniter\Config\BaseConfig;
 use Composer\Console\Application;
 use Symfony\Component\Console\Input\ArrayInput;
-use Tatter\Patches\Exception\UpdateException;
-use Tatter\Patches\Handlers\BaseUpdater;
+use Tatter\Patches\Exceptions\UpdateException;
 use Tatter\Patches\Interfaces\UpdaterInterface;
 
-class ComposerHandler extends BaseUpdater implements UpdaterInterface
+class ComposerHandler implements UpdaterInterface
 {
 	/**
 	 * Call Composer programmatically to update all vendor files
@@ -24,7 +23,7 @@ class ComposerHandler extends BaseUpdater implements UpdaterInterface
 		$application = new Application();
 		$params      = [
 			'command'       => 'update',
-			'--working-dir' => $config->composer,
+			'--working-dir' => $config->rootPath,
 		];
 		
 		// Suppress Composer output during testing

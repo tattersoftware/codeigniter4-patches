@@ -30,14 +30,7 @@ class Patches extends BaseConfig
 	 *
 	 * @var string
 	 */
-	public $destination = ROOTPATH;
-
-	/**
-	 * Path to the directory containing composer.json.
-	 *
-	 * @var string
-	 */
-	public $composer = ROOTPATH;
+	public $rootPath = ROOTPATH;
 
 	/**
 	 * Whether files removed upstream may be deleted locally.
