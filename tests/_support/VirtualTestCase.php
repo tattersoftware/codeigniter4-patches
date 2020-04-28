@@ -35,7 +35,7 @@ class VirtualTestCase extends CIUnitTestCase
 		// Standardize testing config
 		$this->config           = new \Tatter\Patches\Config\Patches();
 		$this->config->basePath = $this->project . 'writable/patches';
-		$this->config->composer = $this->project;
+		$this->config->rootPath = $this->project;
 	}
 
 	public function tearDown(): void

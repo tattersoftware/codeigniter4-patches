@@ -34,6 +34,7 @@
 		"phpunit/phpunit": "8.5.*",
 		"mikey179/vfsstream": "1.6.*",
 		"mockery/mockery": "^1.0",
+		"fzaninotto/faker": "^1.9@dev",
 		"composer/composer": "^1.10",
 		"codeigniter4/codeigniter4": "dev-develop"
 	},

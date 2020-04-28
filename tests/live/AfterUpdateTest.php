@@ -1,6 +1,6 @@
 <?php
 
-use Tatter\Patches\BaseHandler;
+use Tatter\Patches\Patches;
 
 class AfterUpdateTest extends \Tests\Support\VirtualTestCase
 {
@@ -11,7 +11,7 @@ class AfterUpdateTest extends \Tests\Support\VirtualTestCase
 		// Framework has way too many files so we will ignore it for now
 		$this->config->ignoredSources[] = 'Framework';
 
-		$this->patches = new BaseHandler($this->config);
+		$this->patches = new Patches($this->config);
 		$this->patches->beforeUpdate();
 
 		$this->mockUpdate();
