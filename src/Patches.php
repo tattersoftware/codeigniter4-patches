@@ -4,7 +4,9 @@ use CodeIgniter\CLI\CLI;
 use CodeIgniter\Config\BaseConfig;
 use CodeIgniter\Events\Events;
 use Tatter\Patches\Exceptions\ExceptionInterface;
+use Tatter\Patches\Interfaces\MergerInterface;
 use Tatter\Patches\Interfaces\SourceInterface;
+use Tatter\Patches\Interfaces\UpdaterInterface;
 
 /**
  * Class Patches
@@ -26,6 +28,20 @@ class Patches
 	 * @var array
 	 */
 	protected $sources = [];
+
+	/**
+	 * Instance of the update handler.
+	 *
+	 * @var Tatter\Patches\Interfaces\UpdaterInterface
+	 */
+	protected $updater;
+
+	/**
+	 * Instance of the merger handler.
+	 *
+	 * @var Tatter\Patches\Interfaces\MergerInterface
+	 */
+	protected $merger;
 
 	/**
 	 * Config file to use.
@@ -70,7 +86,14 @@ class Patches
 	public $deletedFiles;
 
 	/**
-	 * Array of relative paths that caused a conflict during patching
+	 * Array of relative paths that were successfully merged
+	 *
+	 * @var array|null
+	 */
+	public $mergedFiles;
+
+	/**
+	 * Array of relative paths that caused a conflict during merging
 	 *
 	 * @var array|null
 	 */
@@ -154,6 +177,26 @@ class Patches
 		$this->errors = [];
 
 		return $errors;
+	}
+
+	/**
+	 * Get the update handler; mostly for testing.
+	 *
+	 * @return UpdaterInterface
+	 */
+	public function getUpdater(): UpdaterInterface
+	{
+		return $this->updater;
+	}
+
+	/**
+	 * Get the merge handler; mostly for testing.
+	 *
+	 * @return MergerInterface
+	 */
+	public function getMerger(): MergerInterface
+	{
+		return $this->merger;
 	}
 	
 	/**
@@ -345,11 +388,11 @@ class Patches
 	 */
 	public function update(): bool
 	{
-		$updater = new $this->config->updater();
+		$this->updater = new $this->config->updater();
 
 		try
 		{
-			$updater->run();
+			$this->updater->run();
 		}
 		catch (ExceptionInterface $e)
 		{
@@ -426,11 +469,11 @@ class Patches
 		// Ensure a trailing slash on the destination
 		$this->config->destination = rtrim($this->config->destination, '/') . '/';
 
-		$merger = new $this->config->merger();
+		$this->merger = new $this->config->merger();
 
 		try
 		{
-			$merger->run($this);
+			list($this->mergedFiles, $this->conflictFiles) = $this->merger->run($this);
 		}
 		catch (ExceptionInterface $e)
 		{
@@ -438,14 +481,14 @@ class Patches
 			return false;
 		}
 		
-		$s = $this->patchedFiles == 1 ? '' : 's';
-		$this->status(count($this->patchedFiles) . "file{$s} patched");
+		$s = $this->mergedFiles == 1 ? '' : 's';
+		$this->status(count($this->mergedFiles) . "file{$s} merged");
 
 		// If events are allowed then trigger postpatch
 		if ($this->config->allowEvents)
 		{
-			// Postpatch events receive the array of patched files
-			Events::trigger('postpatch', $this->patchedFiles);
+			// Postpatch events receive the array of merged files
+			Events::trigger('postpatch', $this->mergedFiles);
 		}
 		else
 		{

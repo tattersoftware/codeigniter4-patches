@@ -17,42 +17,41 @@ class CopyHandlerTest extends \Tests\Support\VirtualTestCase
 		// Framework has way too many files so we will ignore it for now
 		$this->config->ignoredSources[] = 'Framework';
 
-		$this->patches = new Patches($this->config);
-
-		$this->handler = new CopyHandler($this->config);
-
 		// Prepare the library
+		$this->patches = new Patches($this->config);
 		$this->patches->beforeUpdate();
 		$this->mockUpdate();
 		$this->patches->afterUpdate();
+
+		$this->handler = new CopyHandler();
 	}
 
-	public function testSetsPatchedFiles()
+	public function testReturnsMergedFiles()
 	{
-		$this->handler->run($this->patches);
+		list($mergedFiles, $conflictFiles) = $this->handler->run($this->config, $this->patches->getWorkspace(), $this->patches->changedFiles, $this->patches->addedFiles, $this->patches->deletedFiles);
 
 		$expected = [
 			'app/ThirdParty/TestSource/lorem.txt',
 			'app/ThirdParty/TestSource/src/codex.json',
 		];
 
-		$this->assertEquals($expected, $this->patches->patchedFiles);
+		$this->assertEquals($expected, $mergedFiles);
 	}
 
-	public function testSetsConflictFiles()
+	public function testReturnsConflictFiles()
 	{
-		$this->handler->run($this->patches);
+		list($mergedFiles, $conflictFiles) = $this->handler->run($this->config, $this->patches->getWorkspace(), $this->patches->changedFiles, $this->patches->addedFiles, $this->patches->deletedFiles);
 
 		$expected = [
 			'app/ThirdParty/TestSource/images/cat.jpg',
 		];
 
-		$this->assertEquals($expected, $this->patches->conflictFiles);
+		$this->assertEquals($expected, $conflictFiles);
 	}
 
 	public function testChangesFile()
 	{
-		$this->handler->run($this->patches);
+		list($mergedFiles, $conflictFiles) = $this->handler->run($this->config, $this->patches->getWorkspace(), $this->patches->changedFiles, $this->patches->addedFiles, $this->patches->deletedFiles);
 
 		$expected = 'All your base are belong to us.';
 		$contents = file_get_contents($this->project . 'app/ThirdParty/TestSource/lorem.txt');
@@ -62,7 +61,7 @@ class CopyHandlerTest extends \Tests\Support\VirtualTestCase
 
 	public function testAddsFile()
 	{
-		$this->handler->run($this->patches);
+		list($mergedFiles, $conflictFiles) = $this->handler->run($this->config, $this->patches->getWorkspace(), $this->patches->changedFiles, $this->patches->addedFiles, $this->patches->deletedFiles);
 
 		$this->assertFileExists($this->project . 'app/ThirdParty/TestSource/src/codex.json');
 	}
