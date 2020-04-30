@@ -24,7 +24,7 @@ class BeforeUpdateTest extends \Tests\Support\VirtualTestCase
 			'app/ThirdParty/TestSource/static.js',
 		];
 
-		$this->assertEquals($expected, $this->patches->legacyFiles);
+		$this->assertEquals($expected, $this->patches->getCodex()->legacyFiles);
 	}
 
 	public function testBeforeUpdateCreatesLegacy()

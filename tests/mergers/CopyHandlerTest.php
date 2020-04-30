@@ -24,34 +24,36 @@ class CopyHandlerTest extends \Tests\Support\VirtualTestCase
 		$this->patches->afterUpdate();
 
 		$this->handler = new CopyHandler();
+		$this->codex   = $this->patches->getCodex();
 	}
 
 	public function testReturnsMergedFiles()
 	{
-		list($mergedFiles, $conflictFiles) = $this->handler->run($this->config, $this->patches->getWorkspace(), $this->patches->changedFiles, $this->patches->addedFiles, $this->patches->deletedFiles);
+		
+		$this->handler->run($this->codex);
 
 		$expected = [
 			'app/ThirdParty/TestSource/lorem.txt',
 			'app/ThirdParty/TestSource/src/codex.json',
 		];
 
-		$this->assertEquals($expected, $mergedFiles);
+		$this->assertEquals($expected, $this->codex->mergedFiles);
 	}
 
 	public function testReturnsConflictFiles()
 	{
-		list($mergedFiles, $conflictFiles) = $this->handler->run($this->config, $this->patches->getWorkspace(), $this->patches->changedFiles, $this->patches->addedFiles, $this->patches->deletedFiles);
+		$this->handler->run($this->codex);
 
 		$expected = [
 			'app/ThirdParty/TestSource/images/cat.jpg',
 		];
 
-		$this->assertEquals($expected, $conflictFiles);
+		$this->assertEquals($expected, $this->codex->conflictFiles);
 	}
 
 	public function testChangesFile()
 	{
-		list($mergedFiles, $conflictFiles) = $this->handler->run($this->config, $this->patches->getWorkspace(), $this->patches->changedFiles, $this->patches->addedFiles, $this->patches->deletedFiles);
+		$this->handler->run($this->codex);
 
 		$expected = 'All your base are belong to us.';
 		$contents = file_get_contents($this->project . 'app/ThirdParty/TestSource/lorem.txt');
@@ -61,7 +63,7 @@ class CopyHandlerTest extends \Tests\Support\VirtualTestCase
 
 	public function testAddsFile()
 	{
-		list($mergedFiles, $conflictFiles) = $this->handler->run($this->config, $this->patches->getWorkspace(), $this->patches->changedFiles, $this->patches->addedFiles, $this->patches->deletedFiles);
+		$this->handler->run($this->codex);
 
 		$this->assertFileExists($this->project . 'app/ThirdParty/TestSource/src/codex.json');
 	}
