@@ -47,7 +47,7 @@ class AfterUpdateTest extends \Tests\Support\VirtualTestCase
 		$this->patches->afterUpdate();
 
 		$expected = [
-			'app/ThirdParty/TestSource/src/codex.json',
+			'app/ThirdParty/TestSource/src/definition.json',
 		];
 
 		$this->assertEquals($expected, $this->patches->getCodex()->addedFiles);
@@ -57,7 +57,7 @@ class AfterUpdateTest extends \Tests\Support\VirtualTestCase
 	{
 		$this->patches->afterUpdate();
 
-		$this->assertFileExists($this->patches->getWorkspace() . 'current/app/ThirdParty/TestSource/src/codex.json');
+		$this->assertFileExists($this->patches->getWorkspace() . 'current/app/ThirdParty/TestSource/src/definition.json');
 	}
 
 	public function testAfterUpdateSetsDeletedFiles()

@@ -67,11 +67,15 @@ class Codex implements JsonSerializable
 	public $mergedFiles = [];
 
 	/**
-	 * Array of relative paths that caused a conflict during merging
+	 * Arrays of relative paths that caused conflict during merging
 	 *
 	 * @var array
 	 */
-	public $conflictFiles = [];
+	public $conflicts = [
+		'changed' => [],
+		'added'   => [],
+		'deleted' => [],
+	];
 
 	/**
 	 * Initialize the configuration.

@@ -55,7 +55,7 @@ class VirtualTestCase extends CIUnitTestCase
 
 		// Add a file
 		mkdir($this->source . 'src', 0700);
-		file_put_contents($this->source . 'src/codex.json', '{"packages": {"tatter": "Patches"}}');
+		file_put_contents($this->source . 'src/definition.json', '{"packages": {"tatter": "Patches"}}');
 
 		// Remove a file
 		unlink($this->source . 'images/cat.jpg');

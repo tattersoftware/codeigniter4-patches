@@ -29,12 +29,11 @@ class CopyHandlerTest extends \Tests\Support\VirtualTestCase
 
 	public function testReturnsMergedFiles()
 	{
-		
 		$this->handler->run($this->codex);
 
 		$expected = [
 			'app/ThirdParty/TestSource/lorem.txt',
-			'app/ThirdParty/TestSource/src/codex.json',
+			'app/ThirdParty/TestSource/src/definition.json',
 		];
 
 		$this->assertEquals($expected, $this->codex->mergedFiles);
@@ -42,13 +41,19 @@ class CopyHandlerTest extends \Tests\Support\VirtualTestCase
 
 	public function testReturnsConflictFiles()
 	{
+		// Create some content where a file will be added
+		mkdir($this->project . 'app/ThirdParty/TestSource/src', 0700, true);
+		file_put_contents($this->project . 'app/ThirdParty/TestSource/src/definition.json', 'Seat taken');
+
 		$this->handler->run($this->codex);
 
 		$expected = [
-			'app/ThirdParty/TestSource/images/cat.jpg',
+			'changed' => [],
+			'added'   => ['app/ThirdParty/TestSource/src/definition.json'],
+			'deleted' => [],
 		];
 
-		$this->assertEquals($expected, $this->codex->conflictFiles);
+		$this->assertEquals($expected, $this->codex->conflicts);
 	}
 
 	public function testChangesFile()
@@ -65,6 +70,6 @@ class CopyHandlerTest extends \Tests\Support\VirtualTestCase
 	{
 		$this->handler->run($this->codex);
 
-		$this->assertFileExists($this->project . 'app/ThirdParty/TestSource/src/codex.json');
+		$this->assertFileExists($this->project . 'app/ThirdParty/TestSource/src/definition.json');
 	}
 }

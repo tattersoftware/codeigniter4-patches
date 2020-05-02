@@ -21,17 +21,22 @@ class CopyHandler implements MergerInterface
 			$legacy  = $codex->workspace . 'legacy/'  . $file;
 			$project = $codex->config->rootPath . $file;
 
-			// Check if the project is missing this file or has the legacy version
-			if (! file_exists($project) || same_file($project, $legacy))
+			// Check if the project already has the new version
+			if (same_file($project, $current))
+			{
+				continue;
+			}
+			// Check for missing file, or a copy of the legacy file
+			elseif (! file_exists($project) || same_file($project, $legacy))
 			{
 				// Copy in the new version
 				copy_path($current, $project);
 				$codex->mergedFiles[] = $file;
 			}
-			// Mark it as a conflict
-			else
+			// Check for a conflict (file exists but is different)
+			elseif (file_exists($project))
 			{
-				$codex->conflictFiles[] = $file;
+				$codex->conflicts['changed'][] = $file;
 			}
 		}
 
@@ -41,14 +46,15 @@ class CopyHandler implements MergerInterface
 			$current = $codex->workspace . 'current/' . $file;
 			$project = $codex->config->rootPath . $file;
 
-			if (is_file($project))
+			// Check if the project already has the new version
+			if (same_file($project, $current))
 			{
-				// See if it is already the same
-				if (! same_file($project, $current))
-				{
-					// Mark it as a conflict
-					$codex->conflictFiles[] = $file;
-				}
+				continue;
+			}
+			// Check for a conflict
+			elseif (file_exists($project))
+			{
+				$codex->conflicts['added'][] = $file;
 			}
 			else
 			{
@@ -57,7 +63,31 @@ class CopyHandler implements MergerInterface
 			}
 		}
 
-		// Add deleted files to the conflict list for now
-		$codex->conflictFiles = array_merge($codex->conflictFiles, $codex->deletedFiles);
+		// Try to remove deleted files
+		foreach ($codex->deletedFiles as $file)
+		{
+			$legacy  = $codex->workspace . 'legacy/'  . $file;
+			$project = $codex->config->rootPath . $file;
+
+			// Check if the project has the legacy version
+			if (same_file($project, $legacy))
+			{
+				// See if deletes are allowed
+				if ($codex->config->allowDeletes)
+				{
+					unlink($project);
+				}
+				// WIP - For now consider this a conflict
+				if ($codex->config->allowDeletes)
+				{
+					$codex->conflicts['deleted'][] = $file;
+				}
+			}
+			// Check for a conflict
+			elseif (file_exists($project))
+			{
+				$codex->conflicts['deleted'][] = $file;
+			}
+		}
 	}
 }
