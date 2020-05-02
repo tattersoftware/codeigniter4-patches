@@ -1,8 +1,8 @@
 <?php namespace Tatter\Patches\Handlers\Updaters;
 
-use CodeIgniter\Config\BaseConfig;
 use Composer\Console\Application;
 use Symfony\Component\Console\Input\ArrayInput;
+use Tatter\Patches\Codex;
 use Tatter\Patches\Exceptions\UpdateException;
 use Tatter\Patches\Interfaces\UpdaterInterface;
 
@@ -12,18 +12,16 @@ class ComposerHandler implements UpdaterInterface
 	 * Call Composer programmatically to update all vendor files
 	 * https://stackoverflow.com/questions/17219436/run-composer-with-a-php-script-in-browser#25208897
 	 *
-	 * @param BaseConfig $config
+	 * @param Codex $codex
 	 *
 	 * @throws UpdateException
 	 */
-	public function run(BaseConfig $config = null)
+	public function run(Codex &$codex)
 	{
-		$config = $config ?? config('Patches');
-
 		$application = new Application();
 		$params      = [
 			'command'       => 'update',
-			'--working-dir' => $config->rootPath,
+			'--working-dir' => $codex->config->rootPath,
 		];
 		
 		// Suppress Composer output during testing

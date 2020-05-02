@@ -1,6 +1,7 @@
 <?php namespace Tatter\Patches\Test;
 
 use CodeIgniter\Config\BaseConfig;
+use Tatter\Patches\Codex;
 use Tatter\Patches\Exception\UpdateException;
 use Tatter\Patches\Interfaces\UpdaterInterface;
 
@@ -36,15 +37,15 @@ class MockUpdater implements UpdaterInterface
 	/**
 	 * Manipulate random files in vendor.
 	 *
-	 * @param BaseConfig $config
+	 * @param Codex $codex
 	 *
 	 * @throws UpdateException
 	 */
-	public function run(BaseConfig $config = null)
+	public function run(Codex &$codex)
 	{
 		// Get all paths in ROOTPATH/vendor
-		$paths = get_filenames($config->rootPath . 'vendor', null, true);
+		$paths = get_filenames($codex->config->rootPath . 'vendor', null, true);
 
-				
+		
 	}
 }

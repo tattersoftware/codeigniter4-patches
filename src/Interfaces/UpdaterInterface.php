@@ -1,13 +1,13 @@
 <?php namespace Tatter\Patches\Interfaces;
 
-use CodeIgniter\Config\BaseConfig;
+use Tatter\Patches\Codex;
 
 interface UpdaterInterface
 {
 	/**
 	 * Update vendor packages.
 	 *
-	 * @param BaseConfig $config
+	 * @param Codex $codex
 	 */
-	public function run(BaseConfig $config = null);
+	public function run(Codex &$codex);
 }

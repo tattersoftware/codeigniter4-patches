@@ -1,8 +1,6 @@
 <?php namespace Tatter\Patches\Interfaces;
 
-use CodeIgniter\Config\BaseConfig;
 use Tatter\Patches\Codex;
-use Tatter\Patches\Patches;
 
 interface MergerInterface
 {
