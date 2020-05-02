@@ -3,6 +3,7 @@
 use CodeIgniter\CLI\CLI;
 use CodeIgniter\Config\BaseConfig;
 use CodeIgniter\Events\Events;
+use Tatter\Patches\Codex;
 use Tatter\Patches\Exceptions\ExceptionInterface;
 use Tatter\Patches\Interfaces\MergerInterface;
 use Tatter\Patches\Interfaces\SourceInterface;
@@ -16,11 +17,11 @@ use Tatter\Patches\Interfaces\UpdaterInterface;
 class Patches
 {
 	/**
-	 * Error messages from the last call
+	 * Per-run record
 	 *
-	 * @var array
+	 * @var Codex
 	 */
-	protected $errors = [];
+	protected $codex;
 
 	/**
 	 * Array of source instances
@@ -44,62 +45,6 @@ class Patches
 	protected $merger;
 
 	/**
-	 * Config file to use.
-	 *
-	 * @var Tatter\Patches\Config\Patches
-	 */
-	public $config;
-
-	/**
-	 * Path to the working directory.
-	 *
-	 * @var string
-	 */
-	public $workspace;
-
-	/**
-	 * Array of relative paths from sources before updating
-	 *
-	 * @var array|null
-	 */
-	public $legacyFiles;
-
-	/**
-	 * Array of relative paths to files changed by updating
-	 *
-	 * @var array|null
-	 */
-	public $changedFiles;
-
-	/**
-	 * Array of relative paths to files added by updating
-	 *
-	 * @var array|null
-	 */
-	public $addedFiles;
-
-	/**
-	 * Array of relative paths to files deleted by updating
-	 *
-	 * @var array|null
-	 */
-	public $deletedFiles;
-
-	/**
-	 * Array of relative paths that were successfully merged
-	 *
-	 * @var array|null
-	 */
-	public $mergedFiles;
-
-	/**
-	 * Array of relative paths that caused a conflict during merging
-	 *
-	 * @var array|null
-	 */
-	public $conflictFiles;
-
-	/**
 	 * Initialize the configuration and directories.
 	 *
 	 * @param BaseConfig $config
@@ -108,7 +53,7 @@ class Patches
 	{
 		helper(['filesystem', 'patches']);
 
-		$this->config = $config ?? config('Patches');
+		$this->codex = new Codex($config ?? config('Patches'));
 
 		$this->setWorkspace();
 		$this->gatherSources();
@@ -160,10 +105,20 @@ class Patches
 		// If it was an error then store it
 		if ($error)
 		{
-			$this->errors[] = $error;
+			$this->codex->errors[] = $error;
 		}
 
 		return $this;
+	}
+
+	/**
+	 * Return the Codex.
+	 *
+	 * @return Codex
+	 */
+	public function getCodex(): Codex
+	{
+		return $this->codex;
 	}
 
 	/**
@@ -173,8 +128,9 @@ class Patches
 	 */
 	public function getErrors(): array
 	{
-		$errors       = $this->errors;
-		$this->errors = [];
+		$errors = $this->codex->errors;
+
+		$this->codex->errors = [];
 
 		return $errors;
 	}
@@ -206,7 +162,7 @@ class Patches
 	 */
 	public function getWorkspace(): string
 	{
-		return $this->workspace;
+		return $this->codex->workspace;
 	}
 	
 	/**
@@ -220,17 +176,17 @@ class Patches
 	{
 		if ($path)
 		{
-			$this->workspace = rtrim($path, '/') . '/';
+			$this->codex->workspace = rtrim($path, '/') . '/';
 		}
 		else
 		{
-			$this->workspace = rtrim($this->config->basePath, '/') . '/' . date('Y-m-d-His') . '/';
+			$this->codex->workspace = rtrim($this->codex->config->basePath, '/') . '/' . date('Y-m-d-His') . '/';
 		}
 
 		// Ensure the directory exists
-		if (! is_dir($this->workspace))
+		if (! is_dir($this->codex->workspace))
 		{
-			mkdir($this->workspace, 0775, true);
+			mkdir($this->codex->workspace, 0775, true);
 		}
 
 		return $this;
@@ -252,7 +208,7 @@ class Patches
 		{
 			$name = basename($file, '.php');
 
-			if (in_array($name, $this->config->ignoredSources))
+			if (in_array($name, $this->codex->config->ignoredSources))
 			{
 				continue;
 			}
@@ -359,19 +315,19 @@ class Patches
 	 */
 	public function beforeUpdate(): self
 	{
-		$destination = $this->workspace . 'legacy/';
+		$destination = $this->codex->workspace . 'legacy/';
 
 		// Copy the prepatch files and store the list
-		$this->legacyFiles = $this->copyPaths($destination);
+		$this->codex->legacyFiles = $this->copyPaths($destination);
 
-		$s = $this->legacyFiles == 1 ? '' : 's';
-		$this->status(count($this->legacyFiles) . " legacy file{$s} copied to {$destination}");
+		$s = $this->codex->legacyFiles == 1 ? '' : 's';
+		$this->status(count($this->codex->legacyFiles) . " legacy file{$s} copied to {$destination}");
 
 		// If events are allowed then trigger prepatch
-		if ($this->config->allowEvents)
+		if ($this->codex->config->allowEvents)
 		{
 			// Prepatch events receive the array of legacy files
-			Events::trigger('prepatch', $destination, $this->legacyFiles);
+			Events::trigger('prepatch', $destination, $this->codex->legacyFiles);
 		}
 		else
 		{
@@ -410,29 +366,26 @@ class Patches
 	 */
 	public function afterUpdate(): self
 	{
-		$this->changedFiles = [];
-		$this->addedFiles   = [];
-		$this->deletedFiles = [];
-		$unchangedFiles     = [];
+		$unchangedFiles = [];
 
 		// Copy any files that were changed during the update
 		foreach ($this->gatherPaths() as $path)
 		{
-			$legacy = $this->workspace . 'legacy/'  . $path['to'];
+			$legacy = $this->codex->workspace . 'legacy/'  . $path['to'];
 
 			// If the file is new or changed then copy it
 			if (! same_file($legacy, $path['from']))
 			{
-				if (copy_path($path['from'], $this->workspace . 'current/' . $path['to']))
+				if (copy_path($path['from'], $this->codex->workspace . 'current/' . $path['to']))
 				{
 					// Add it to the appropriate list
 					if (is_file($legacy))
 					{
-						$this->changedFiles[] = $path['to'];
+						$this->codex->changedFiles[] = $path['to'];
 					}
 					else
 					{
-						$this->addedFiles[] = $path['to'];
+						$this->codex->addedFiles[] = $path['to'];
 					}
 				}
 			}
@@ -445,16 +398,16 @@ class Patches
 		}
 
 		// Update the array of legacy files to match the new filtered list
-		$this->legacyFiles = array_diff($this->legacyFiles, $unchangedFiles);
+		$this->codex->legacyFiles = array_diff($this->codex->legacyFiles, $unchangedFiles);
 
-		$s = $this->changedFiles == 1 ? '' : 's';
-		$this->status(count($this->changedFiles) . " changed file{$s} detected");
+		$s = $this->codex->changedFiles == 1 ? '' : 's';
+		$this->status(count($this->codex->changedFiles) . " changed file{$s} detected");
 
 		// Check for files that have been deleted
-		$this->deletedFiles = array_diff($this->legacyFiles, $this->changedFiles);
+		$this->codex->deletedFiles = array_diff($this->codex->legacyFiles, $this->codex->changedFiles);
 
-		$s = $this->deletedFiles == 1 ? '' : 's';
-		$this->status(count($this->deletedFiles) . " deleted file{$s} detected");
+		$s = $this->codex->deletedFiles == 1 ? '' : 's';
+		$this->status(count($this->codex->deletedFiles) . " deleted file{$s} detected");
 
 		return $this;
 	}
@@ -467,13 +420,13 @@ class Patches
 	public function merge(): bool
 	{
 		// Ensure a trailing slash on the destination
-		$this->config->destination = rtrim($this->config->destination, '/') . '/';
+		$this->codex->config->destination = rtrim($this->codex->config->destination, '/') . '/';
 
-		$this->merger = new $this->config->merger();
+		$this->merger = new $this->codex->config->merger();
 
 		try
 		{
-			list($this->mergedFiles, $this->conflictFiles) = $this->merger->run($this);
+			$this->merger->run($this->codex);
 		}
 		catch (ExceptionInterface $e)
 		{
@@ -481,14 +434,14 @@ class Patches
 			return false;
 		}
 		
-		$s = $this->mergedFiles == 1 ? '' : 's';
-		$this->status(count($this->mergedFiles) . "file{$s} merged");
+		$s = $this->codex->mergedFiles == 1 ? '' : 's';
+		$this->status(count($this->codex->mergedFiles) . "file{$s} merged");
 
 		// If events are allowed then trigger postpatch
-		if ($this->config->allowEvents)
+		if ($this->codex->config->allowEvents)
 		{
 			// Postpatch events receive the array of merged files
-			Events::trigger('postpatch', $this->mergedFiles);
+			Events::trigger('postpatch', $this->codex->mergedFiles);
 		}
 		else
 		{

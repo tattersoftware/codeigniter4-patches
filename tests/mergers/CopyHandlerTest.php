@@ -24,34 +24,41 @@ class CopyHandlerTest extends \Tests\Support\VirtualTestCase
 		$this->patches->afterUpdate();
 
 		$this->handler = new CopyHandler();
+		$this->codex   = $this->patches->getCodex();
 	}
 
 	public function testReturnsMergedFiles()
 	{
-		list($mergedFiles, $conflictFiles) = $this->handler->run($this->config, $this->patches->getWorkspace(), $this->patches->changedFiles, $this->patches->addedFiles, $this->patches->deletedFiles);
+		$this->handler->run($this->codex);
 
 		$expected = [
 			'app/ThirdParty/TestSource/lorem.txt',
-			'app/ThirdParty/TestSource/src/codex.json',
+			'app/ThirdParty/TestSource/src/definition.json',
 		];
 
-		$this->assertEquals($expected, $mergedFiles);
+		$this->assertEquals($expected, $this->codex->mergedFiles);
 	}
 
 	public function testReturnsConflictFiles()
 	{
-		list($mergedFiles, $conflictFiles) = $this->handler->run($this->config, $this->patches->getWorkspace(), $this->patches->changedFiles, $this->patches->addedFiles, $this->patches->deletedFiles);
+		// Create some content where a file will be added
+		mkdir($this->project . 'app/ThirdParty/TestSource/src', 0700, true);
+		file_put_contents($this->project . 'app/ThirdParty/TestSource/src/definition.json', 'Seat taken');
+
+		$this->handler->run($this->codex);
 
 		$expected = [
-			'app/ThirdParty/TestSource/images/cat.jpg',
+			'changed' => [],
+			'added'   => ['app/ThirdParty/TestSource/src/definition.json'],
+			'deleted' => [],
 		];
 
-		$this->assertEquals($expected, $conflictFiles);
+		$this->assertEquals($expected, $this->codex->conflicts);
 	}
 
 	public function testChangesFile()
 	{
-		list($mergedFiles, $conflictFiles) = $this->handler->run($this->config, $this->patches->getWorkspace(), $this->patches->changedFiles, $this->patches->addedFiles, $this->patches->deletedFiles);
+		$this->handler->run($this->codex);
 
 		$expected = 'All your base are belong to us.';
 		$contents = file_get_contents($this->project . 'app/ThirdParty/TestSource/lorem.txt');
@@ -61,8 +68,8 @@ class CopyHandlerTest extends \Tests\Support\VirtualTestCase
 
 	public function testAddsFile()
 	{
-		list($mergedFiles, $conflictFiles) = $this->handler->run($this->config, $this->patches->getWorkspace(), $this->patches->changedFiles, $this->patches->addedFiles, $this->patches->deletedFiles);
+		$this->handler->run($this->codex);
 
-		$this->assertFileExists($this->project . 'app/ThirdParty/TestSource/src/codex.json');
+		$this->assertFileExists($this->project . 'app/ThirdParty/TestSource/src/definition.json');
 	}
 }

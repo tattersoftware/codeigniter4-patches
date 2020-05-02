@@ -1,6 +1,7 @@
 <?php namespace Tatter\Patches\Interfaces;
 
 use CodeIgniter\Config\BaseConfig;
+use Tatter\Patches\Codex;
 use Tatter\Patches\Patches;
 
 interface MergerInterface
@@ -8,13 +9,7 @@ interface MergerInterface
 	/**
 	 * Merge each path to its relative destination.
 	 *
-	 * @param BaseConfig $config
-	 * @param string $workspace
-	 * @param array $changedFiles
-	 * @param array $addedFiles
-	 * @param array $deletedFiles
-	 *
-	 * @return array [array mergedFiles, array conflictFiles]
+	 * @param Codex $codex
 	 */
-	public function run(BaseConfig $config, string $workspace, array $changedFiles, array $addedFiles, array $deletedFiles): array;
+	public function run(Codex &$codex);
 }

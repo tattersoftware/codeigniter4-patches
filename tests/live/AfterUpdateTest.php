@@ -25,7 +25,7 @@ class AfterUpdateTest extends \Tests\Support\VirtualTestCase
 			'app/ThirdParty/TestSource/lorem.txt',
 		];
 
-		$this->assertEquals($expected, $this->patches->changedFiles);
+		$this->assertEquals($expected, $this->patches->getCodex()->changedFiles);
 	}
 
 	public function testAfterUpdateCreatesCurrent()
@@ -47,17 +47,17 @@ class AfterUpdateTest extends \Tests\Support\VirtualTestCase
 		$this->patches->afterUpdate();
 
 		$expected = [
-			'app/ThirdParty/TestSource/src/codex.json',
+			'app/ThirdParty/TestSource/src/definition.json',
 		];
 
-		$this->assertEquals($expected, $this->patches->addedFiles);
+		$this->assertEquals($expected, $this->patches->getCodex()->addedFiles);
 	}
 
 	public function testAfterUpdateCopiesAddedFiles()
 	{
 		$this->patches->afterUpdate();
 
-		$this->assertFileExists($this->patches->getWorkspace() . 'current/app/ThirdParty/TestSource/src/codex.json');
+		$this->assertFileExists($this->patches->getWorkspace() . 'current/app/ThirdParty/TestSource/src/definition.json');
 	}
 
 	public function testAfterUpdateSetsDeletedFiles()
@@ -68,6 +68,6 @@ class AfterUpdateTest extends \Tests\Support\VirtualTestCase
 			'app/ThirdParty/TestSource/images/cat.jpg',
 		];
 
-		$this->assertEquals($expected, $this->patches->deletedFiles);
+		$this->assertEquals($expected, $this->patches->getCodex()->deletedFiles);
 	}
 }

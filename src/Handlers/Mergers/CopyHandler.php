@@ -1,6 +1,7 @@
 <?php namespace Tatter\Patches\Handlers\Mergers;
 
 use CodeIgniter\Config\BaseConfig;
+use Tatter\Patches\Codex;
 use Tatter\Patches\Interfaces\MergerInterface;
 use Tatter\Patches\Patches;
 
@@ -9,65 +10,84 @@ class CopyHandler implements MergerInterface
 	/**
 	 * Compare files and replace as needed, tracking conflicts
 	 *
-	 * @param BaseConfig $config
-	 * @param string $workspace
-	 * @param array $changedFiles
-	 * @param array $addedFiles
-	 * @param array $deletedFiles
-	 *
-	 * @return array [array mergedFiles, array conflictFiles]
+	 * @param Codex $codex
 	 */
-	public function run(BaseConfig $config, string $workspace, array $changedFiles, array $addedFiles, array $deletedFiles): array
+	public function run(Codex &$codex)
 	{
-		$mergedFiles   = [];
-		$conflictFiles = [];
-
 		// Check every changed file against the destination
-		foreach ($changedFiles as $file)
+		foreach ($codex->changedFiles as $file)
 		{
-			$current = $workspace . 'current/' . $file;
-			$legacy  = $workspace . 'legacy/'  . $file;
-			$project = $config->rootPath . $file;
+			$current = $codex->workspace . 'current/' . $file;
+			$legacy  = $codex->workspace . 'legacy/'  . $file;
+			$project = $codex->config->rootPath . $file;
 
-			// Check if the project is missing this file or has the legacy version
-			if (! file_exists($project) || same_file($project, $legacy))
+			// Check if the project already has the new version
+			if (same_file($project, $current))
+			{
+				continue;
+			}
+			// Check for missing file, or a copy of the legacy file
+			elseif (! file_exists($project) || same_file($project, $legacy))
 			{
 				// Copy in the new version
 				copy_path($current, $project);
-				$mergedFiles[] = $file;
+				$codex->mergedFiles[] = $file;
 			}
-			// Mark it as a conflict
-			else
+			// Check for a conflict (file exists but is different)
+			elseif (file_exists($project))
 			{
-				$conflictFiles[] = $file;
+				$codex->conflicts['changed'][] = $file;
 			}
 		}
 
 		// Try to copy in every added file
-		foreach ($addedFiles as $file)
+		foreach ($codex->addedFiles as $file)
 		{
-			$current = $workspace . 'current/' . $file;
-			$project = $config->rootPath . $file;
+			$current = $codex->workspace . 'current/' . $file;
+			$project = $codex->config->rootPath . $file;
 
-			if (is_file($project))
+			// Check if the project already has the new version
+			if (same_file($project, $current))
 			{
-				// See if it is already the same
-				if (! same_file($project, $current))
-				{
-					// Mark it as a conflict
-					$conflictFiles[] = $file;
-				}
+				continue;
+			}
+			// Check for a conflict
+			elseif (file_exists($project))
+			{
+				$codex->conflicts['added'][] = $file;
 			}
 			else
 			{
 				copy_path($current, $project);
-				$mergedFiles[] = $file;
+				$codex->mergedFiles[] = $file;
 			}
 		}
 
-		// Add deleted files to the conflict list for now
-		$conflictFiles = array_merge($conflictFiles, $deletedFiles);
+		// Try to remove deleted files
+		foreach ($codex->deletedFiles as $file)
+		{
+			$legacy  = $codex->workspace . 'legacy/'  . $file;
+			$project = $codex->config->rootPath . $file;
 
-		return [$mergedFiles, $conflictFiles];
+			// Check if the project has the legacy version
+			if (same_file($project, $legacy))
+			{
+				// See if deletes are allowed
+				if ($codex->config->allowDeletes)
+				{
+					unlink($project);
+				}
+				// WIP - For now consider this a conflict
+				if ($codex->config->allowDeletes)
+				{
+					$codex->conflicts['deleted'][] = $file;
+				}
+			}
+			// Check for a conflict
+			elseif (file_exists($project))
+			{
+				$codex->conflicts['deleted'][] = $file;
+			}
+		}
 	}
 }
