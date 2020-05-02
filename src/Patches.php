@@ -348,7 +348,7 @@ class Patches
 
 		try
 		{
-			$this->updater->run();
+			$this->updater->run($this->codex);
 		}
 		catch (ExceptionInterface $e)
 		{

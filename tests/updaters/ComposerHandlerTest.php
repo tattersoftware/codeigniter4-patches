@@ -1,12 +1,18 @@
 <?php
 
+use Tatter\Patches\Codex;
 use Tatter\Patches\Exceptions\UpdateException;
 use Tatter\Patches\Handlers\Updaters\ComposerHandler;
 
 class ComposerHandlerTest extends \Tests\Support\VirtualTestCase
 {
 	/**
-	 * @var Tatter\Patches\Handlers\Updaters\ComposerHandler
+	 * @var Codex
+	 */
+	protected $codex;
+
+	/**
+	 * @var ComposerHandler
 	 */
 	protected $handler;
 
@@ -20,6 +26,7 @@ class ComposerHandlerTest extends \Tests\Support\VirtualTestCase
 
 		// Virtual paths don't support chdir() so we need to test on the filesystem
 		$this->config->rootPath = SUPPORTPATH . 'Source/Project/';
+		$this->codex = new Codex($this->config);
 
 		$this->handler = new ComposerHandler();
 	}
@@ -43,24 +50,24 @@ class ComposerHandlerTest extends \Tests\Support\VirtualTestCase
 
 	public function testComposerSucceeds()
 	{
-		$result = $this->handler->run($this->config);
+		$result = $this->handler->run($this->codex);
 
 		$this->assertNull($result);
 	}
 
 	public function testComposerErrorOnFailure()
 	{
-		$this->config->rootPath = '/foo/bar';
+		$this->codex->config->rootPath = '/foo/bar';
 
 		$this->expectException(UpdateException::class);
 		$this->expectExceptionMessage(lang('Patches.composerFailure', [1]));
 
-		$this->handler->run($this->config);
+		$this->handler->run($this->codex);
 	}
 
 	public function testComposerCreatesVendor()
 	{
-		$this->handler->run($this->config);
+		$this->handler->run($this->codex);
 
 		$this->assertTrue(is_dir($this->config->rootPath . 'vendor'));
 	}
