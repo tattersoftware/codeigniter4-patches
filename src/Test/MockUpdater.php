@@ -2,6 +2,7 @@
 
 use CodeIgniter\Config\BaseConfig;
 use Tatter\Patches\Codex;
+use Tatter\Patches\Handlers\BaseHandler;
 use Tatter\Patches\Exception\UpdateException;
 use Tatter\Patches\Interfaces\UpdaterInterface;
 
@@ -11,15 +12,8 @@ use Tatter\Patches\Interfaces\UpdaterInterface;
  * Manipulates random files from vendor to simulate running
  * an update. Tracks changes so they are available for comparison.
  */
-class MockUpdater implements UpdaterInterface
+class MockUpdater extends BaseHandler implements UpdaterInterface
 {
-	/**
-	 * The Codex to run against
-	 *
-	 * @var Codex
-	 */
-	public $codex;
-
 	/**
 	 * Array of relative paths to files changed by updating
 	 *
@@ -48,30 +42,30 @@ class MockUpdater implements UpdaterInterface
 	 */
 	public function __construct(Codex &$codex)
 	{
+		parent::__construct($codex);
+
 		// Determine how many changes to make
-		if (is_null($codex->mockCount))
+		if (! isset($this->codex->mockCount))
 		{
 			$count = count($this->codex->legacyFiles);
 
 			if ($count < 10)
 			{
-				$codex->mockCount = ceil($count / 2) + 1;
+				$this->codex->mockCount = ceil($count / 2) + 1;
 			}
 			elseif ($count < 25)
 			{
-				$codex->mockCount = ceil($count / 3);
+				$this->codex->mockCount = ceil($count / 3);
 			}
 			elseif ($count < 50)
 			{
-				$codex->mockCount = ceil($count / 4);
+				$this->codex->mockCount = ceil($count / 4);
 			}
 			else
 			{
-				$codex->mockCount = 20;
+				$this->codex->mockCount = 20;
 			}
 		}
-
-		$this->codex = $codex;
 	}
 
 	/**
@@ -79,7 +73,7 @@ class MockUpdater implements UpdaterInterface
 	 *
 	 * @throws UpdateException
 	 */
-	public function run()
+	public function update()
 	{
 		$this->changedFiles = $this->addedFiles = $this->deletedFiles = [];
 

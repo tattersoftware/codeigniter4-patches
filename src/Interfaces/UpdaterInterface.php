@@ -14,5 +14,5 @@ interface UpdaterInterface
 	/**
 	 * Update vendor packages.
 	 */
-	public function run();
+	public function update();
 }

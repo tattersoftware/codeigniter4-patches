@@ -28,7 +28,7 @@ class ComposerHandlerTest extends \Tests\Support\VirtualTestCase
 		$this->config->rootPath = SUPPORTPATH . 'Source/Project/';
 		$this->codex = new Codex($this->config);
 
-		$this->handler = new ComposerHandler();
+		$this->handler = new ComposerHandler($this->codex);
 	}
 
 	public function tearDown(): void
@@ -50,7 +50,7 @@ class ComposerHandlerTest extends \Tests\Support\VirtualTestCase
 
 	public function testComposerSucceeds()
 	{
-		$result = $this->handler->run($this->codex);
+		$result = $this->handler->update();
 
 		$this->assertNull($result);
 	}
@@ -62,12 +62,12 @@ class ComposerHandlerTest extends \Tests\Support\VirtualTestCase
 		$this->expectException(UpdateException::class);
 		$this->expectExceptionMessage(lang('Patches.composerFailure', [1]));
 
-		$this->handler->run($this->codex);
+		$this->handler->update();
 	}
 
 	public function testComposerCreatesVendor()
 	{
-		$this->handler->run($this->codex);
+		$this->handler->update();
 
 		$this->assertTrue(is_dir($this->config->rootPath . 'vendor'));
 	}

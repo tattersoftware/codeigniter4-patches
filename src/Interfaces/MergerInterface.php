@@ -5,9 +5,14 @@ use Tatter\Patches\Codex;
 interface MergerInterface
 {
 	/**
-	 * Merge each path to its relative destination.
+	 * Initialize the handler with a Codex.
 	 *
 	 * @param Codex $codex
 	 */
-	public function run(Codex &$codex);
+	public function __construct(Codex &$codex);
+
+	/**
+	 * Merge each path to its relative destination.
+	 */
+	public function merge();
 }

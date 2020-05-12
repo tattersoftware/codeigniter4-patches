@@ -3,10 +3,11 @@
 use Composer\Console\Application;
 use Symfony\Component\Console\Input\ArrayInput;
 use Tatter\Patches\Codex;
+use Tatter\Patches\Handlers\BaseHandler;
 use Tatter\Patches\Exceptions\UpdateException;
 use Tatter\Patches\Interfaces\UpdaterInterface;
 
-class ComposerHandler implements UpdaterInterface
+class ComposerHandler extends BaseHandler implements UpdaterInterface
 {
 	/**
 	 * Call Composer programmatically to update all vendor files
@@ -16,12 +17,12 @@ class ComposerHandler implements UpdaterInterface
 	 *
 	 * @throws UpdateException
 	 */
-	public function run(Codex &$codex)
+	public function update()
 	{
 		$application = new Application();
 		$params      = [
 			'command'       => 'update',
-			'--working-dir' => $codex->config->rootPath,
+			'--working-dir' => $this->codex->config->rootPath,
 		];
 		
 		// Suppress Composer output during testing

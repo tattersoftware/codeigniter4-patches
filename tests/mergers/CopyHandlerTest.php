@@ -23,13 +23,13 @@ class CopyHandlerTest extends \Tests\Support\VirtualTestCase
 		$this->mockUpdate();
 		$this->patches->afterUpdate();
 
-		$this->handler = new CopyHandler();
 		$this->codex   = $this->patches->getCodex();
+		$this->handler = new CopyHandler($this->codex);
 	}
 
 	public function testReturnsMergedFiles()
 	{
-		$this->handler->run($this->codex);
+		$this->handler->merge();
 
 		$expected = [
 			'app/ThirdParty/TestSource/lorem.txt',
@@ -45,7 +45,7 @@ class CopyHandlerTest extends \Tests\Support\VirtualTestCase
 		mkdir($this->project . 'app/ThirdParty/TestSource/src', 0700, true);
 		file_put_contents($this->project . 'app/ThirdParty/TestSource/src/definition.json', 'Seat taken');
 
-		$this->handler->run($this->codex);
+		$this->handler->merge();
 
 		$expected = [
 			'changed' => [],
@@ -58,7 +58,7 @@ class CopyHandlerTest extends \Tests\Support\VirtualTestCase
 
 	public function testChangesFile()
 	{
-		$this->handler->run($this->codex);
+		$this->handler->merge();
 
 		$expected = 'All your base are belong to us.';
 		$contents = file_get_contents($this->project . 'app/ThirdParty/TestSource/lorem.txt');
@@ -68,7 +68,7 @@ class CopyHandlerTest extends \Tests\Support\VirtualTestCase
 
 	public function testAddsFile()
 	{
-		$this->handler->run($this->codex);
+		$this->handler->merge();
 
 		$this->assertFileExists($this->project . 'app/ThirdParty/TestSource/src/definition.json');
 	}

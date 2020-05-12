@@ -344,11 +344,11 @@ class Patches
 	 */
 	public function update(): bool
 	{
-		$this->updater = new $this->config->updater($this->codex);
+		$this->updater = new $this->codex->config->updater($this->codex);
 
 		try
 		{
-			$this->updater->run();
+			$this->updater->update();
 		}
 		catch (ExceptionInterface $e)
 		{
@@ -422,11 +422,11 @@ class Patches
 		// Ensure a trailing slash on the destination
 		$this->codex->config->destination = rtrim($this->codex->config->destination, '/') . '/';
 
-		$this->merger = new $this->codex->config->merger();
+		$this->merger = new $this->codex->config->merger($this->codex);
 
 		try
 		{
-			$this->merger->run($this->codex);
+			$this->merger->merge();
 		}
 		catch (ExceptionInterface $e)
 		{

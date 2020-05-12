@@ -31,7 +31,7 @@ class MockUpdaterTest extends \Tests\Support\VirtualTestCase
 
 	public function testMockUpdaterSetsProperties()
 	{
-		$this->handler->run();
+		$this->handler->update();
 
 		$this->assertIsArray($this->handler->changedFiles);
 		$this->assertIsArray($this->handler->addedFiles);
