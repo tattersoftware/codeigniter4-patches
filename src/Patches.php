@@ -344,11 +344,11 @@ class Patches
 	 */
 	public function update(): bool
 	{
-		$this->updater = new $this->config->updater();
+		$this->updater = new $this->config->updater($this->codex);
 
 		try
 		{
-			$this->updater->run($this->codex);
+			$this->updater->run();
 		}
 		catch (ExceptionInterface $e)
 		{

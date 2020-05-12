@@ -5,9 +5,14 @@ use Tatter\Patches\Codex;
 interface UpdaterInterface
 {
 	/**
-	 * Update vendor packages.
+	 * Initialize the handler with a Codex.
 	 *
 	 * @param Codex $codex
 	 */
-	public function run(Codex &$codex);
+	public function __construct(Codex &$codex);
+
+	/**
+	 * Update vendor packages.
+	 */
+	public function run();
 }

@@ -16,6 +16,28 @@ if (! function_exists('same_file'))
 	}
 }
 
+if (! function_exists('ensure_file_dir'))
+{
+	/**
+	 * Make sure the directory and parent directories to a file exist
+	 *
+	 * @param string $file  Full path to the file
+	 *
+	 * @return bool  Success or failure
+	 */
+	function ensure_file_dir(string $file): bool
+	{
+		$dir = pathinfo($file, PATHINFO_DIRNAME);
+
+		if (! file_exists($dir))
+		{
+			return mkdir($dir, 0775, true);
+		}
+
+		return true;
+	}
+}
+
 if (! function_exists('copy_path'))
 {
 	/**
@@ -34,11 +56,7 @@ if (! function_exists('copy_path'))
 		}
 
 		// Make sure the destination directory exists
-		$dir = pathinfo($file2, PATHINFO_DIRNAME);
-		if (! file_exists($dir))
-		{
-			mkdir($dir, 0775, true);
-		}
+		ensure_file_dir($file2);
 
 		// Copy the file
 		try
