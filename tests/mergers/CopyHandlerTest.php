@@ -6,6 +6,11 @@ use Tatter\Patches\Patches;
 class CopyHandlerTest extends \Tests\Support\VirtualTestCase
 {
 	/**
+	 * @var Tatter\Patches\Test\MockUpdater
+	 */
+	protected $updater;
+
+	/**
 	 * @var Tatter\Patches\Handlers\Mergers\CopyHandler
 	 */
 	protected $handler;
@@ -20,8 +25,11 @@ class CopyHandlerTest extends \Tests\Support\VirtualTestCase
 		// Prepare the library
 		$this->patches = new Patches($this->config);
 		$this->patches->beforeUpdate();
-		$this->mockUpdate();
+		$this->patches->update();
 		$this->patches->afterUpdate();
+
+		// Get the MockUpdater instance to compare files
+		$this->updater = $this->patches->getUpdater();
 
 		$this->codex   = $this->patches->getCodex();
 		$this->handler = new CopyHandler($this->codex);

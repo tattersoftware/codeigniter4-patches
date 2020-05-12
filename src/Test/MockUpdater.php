@@ -3,7 +3,7 @@
 use CodeIgniter\Config\BaseConfig;
 use Tatter\Patches\Codex;
 use Tatter\Patches\Handlers\BaseHandler;
-use Tatter\Patches\Exception\UpdateException;
+use Tatter\Patches\Exceptions\UpdateException;
 use Tatter\Patches\Interfaces\UpdaterInterface;
 
 /**
@@ -80,7 +80,7 @@ class MockUpdater extends BaseHandler implements UpdaterInterface
 	}
 
 	/**
-	 * Manipulate random legacy files.
+	 * Manipulate random vendor files.
 	 *
 	 * @throws UpdateException
 	 */
@@ -88,30 +88,31 @@ class MockUpdater extends BaseHandler implements UpdaterInterface
 	{
 		$this->changedFiles = $this->addedFiles = $this->deletedFiles = [];
 
+		// Always add, change, and delete one file each
+		$this->addFile();
+		$this->changeFile();
+		$this->deleteFile();
+
+		// Do a random number of other operations
 		for ($i = 0; $i < $this->codex->mockCount; $i++)
 		{
 			$file = $this->getFile();
 			$rand = rand(1,4);
 
-			// Always add if no file was available
+			// Add if no file was available
 			if ($rand === 1 || empty($file))
 			{
-				$newFile = pathinfo($file, PATHINFO_DIRNAME) . '/' . random_string() . '.' . random_string('alpha', 3);
-
-				$this->fillFile($newFile);
-				$this->addedFiles[] = $newFile;
+				$this->addFile();
 			}
 			// Delete
-			elseif($rand === 2)
+			elseif ($rand === 2)
 			{
-				unlink($file);
-				$this->deletedFiles[] = $file;
+				$this->deleteFile($file);
 			}
 			// Change
 			else
 			{
-				$this->fillFile($file);
-				$this->changedFiles[] = $file;
+				$this->changeFile($file);
 			}
 		}
 	}
@@ -134,6 +135,12 @@ class MockUpdater extends BaseHandler implements UpdaterInterface
 			}
 		}
 
+		// If no files were gathered then assume something went wrong
+		if (empty($this->vendorFiles))
+		{
+			throw new UpdateException('MockUpdater failed to locate any vendor files');
+		}
+
 		// Ignore metadata
 		$this->vendorFiles = preg_grep('#vendor/autoload\.php#', $this->vendorFiles, PREG_GREP_INVERT);
 		$this->vendorFiles = preg_grep('#vendor/bin/#', $this->vendorFiles, PREG_GREP_INVERT);
@@ -145,12 +152,14 @@ class MockUpdater extends BaseHandler implements UpdaterInterface
 	/**
 	 * Get a random file to work on.
 	 *
+	 * @param bool $untouched  Whether to limit to files that have already been touched
+	 *
 	 * @return string|null  Path to the file, or null if no files are available
 	 */
-	protected function getFile(): ?string
+	protected function getFile($untouched = true): ?string
 	{
-		// Ignore deleted files
-		$files = array_diff($this->vendorFiles, $this->deletedFiles);
+		// Limit to files not changed or deleted
+		$files = $untouched ? array_diff($this->vendorFiles, $this->changedFiles, $this->deletedFiles) : $this->vendorFiles;
 
 		if (empty($files))
 		{
@@ -163,12 +172,58 @@ class MockUpdater extends BaseHandler implements UpdaterInterface
 	/**
 	 * Ensure a file and directory exists then fill it with random contents.
 	 *
-	 * @param string $file  Path to the file
+	 * @param string|null $file      Path to the file
+	 * @param string|null $contents  Contents of the new file
 	 */
-	protected function fillFile(string $file)
+	public function addFile(string $file = null, string $contents = null)
 	{
+		// If no file was specified then make one in a random directory
+		$file     = $file ?? pathinfo($this->getFile(false), PATHINFO_DIRNAME) . '/' . random_string() . '.' . random_string('alpha', 3);
+		$contents = $contents ?? bin2hex(random_bytes(128));
+
 		// Make sure the destination directory exists
 		ensure_file_dir($file);
-		file_put_contents($file, bin2hex(random_bytes(128)));
+		file_put_contents($file, $contents);
+
+		$this->addedFiles[] = $file;
+	}
+
+	/**
+	 * Change the contents of a random file.
+	 *
+	 * @param string|null $file      Path to the existing file
+	 * @param string|null $contents  Contents of the new file
+	 */
+	public function changeFile(string $file = null, string $contents = null)
+	{
+		$file     = $file ?? $this->getFile();
+		$contents = $contents ?? bin2hex(random_bytes(128));
+
+		if (! is_file($file))
+		{
+			throw new UpdateException('Attempt to modify invalid file: ' . $file);
+		}
+
+		file_put_contents($file, $contents);
+
+		$this->changedFiles[] = $file;
+	}
+
+	/**
+	 * Delete a file.
+	 *
+	 * @param string|null $file  Path to the existing file
+	 */
+	public function deleteFile(string $file = null)
+	{
+		$file = $file ?? $this->getFile();
+
+		if (! is_file($file))
+		{
+			throw new UpdateException('Attempt to delete invalid file: ' . $file);
+		}
+
+		unlink($file);
+		$this->deletedFiles[] = $file;
 	}
 }

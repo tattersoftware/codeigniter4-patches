@@ -66,15 +66,15 @@ class LibraryTest extends \Tests\Support\VirtualTestCase
 
 		$expected = [
 			[
-				'from' => VIRTUALPATH . 'Package/images/cat.jpg',
+				'from' => VIRTUALPATH . 'vendor/testsource/images/cat.jpg',
 				'to'   => 'app/ThirdParty/TestSource/images/cat.jpg',
 			],
 			[
-				'from' => VIRTUALPATH . 'Package/lorem.txt',
+				'from' => VIRTUALPATH . 'vendor/testsource/lorem.txt',
 				'to'   => 'app/ThirdParty/TestSource/lorem.txt',
 			],
 			[
-				'from' => VIRTUALPATH . 'Package/static.js',
+				'from' => VIRTUALPATH . 'vendor/testsource/static.js',
 				'to'   => 'app/ThirdParty/TestSource/static.js',
 			],
 		];

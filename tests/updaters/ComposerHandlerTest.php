@@ -25,7 +25,7 @@ class ComposerHandlerTest extends \Tests\Support\VirtualTestCase
 		$this->config->updater = 'Tatter\Patches\Handlers\Updaters\ComposerHandler';
 
 		// Virtual paths don't support chdir() so we need to test on the filesystem
-		$this->config->rootPath = SUPPORTPATH . 'Source/Project/';
+		$this->config->rootPath = SUPPORTPATH . 'MockProject/';
 		$this->codex = new Codex($this->config);
 
 		$this->handler = new ComposerHandler($this->codex);
@@ -36,16 +36,7 @@ class ComposerHandlerTest extends \Tests\Support\VirtualTestCase
 		parent::tearDown();
 
 		// Remove any files created
-		delete_files($this->config->rootPath . 'vendor', true);
-
-		if (is_dir($this->config->rootPath . 'vendor'))
-		{
-			rmdir($this->config->rootPath . 'vendor');
-		}
-		if (is_file($this->config->rootPath . 'composer.lock'))
-		{
-			unlink($this->config->rootPath . 'composer.lock');
-		}
+		$this->removeComposerFiles();
 	}
 
 	public function testComposerSucceeds()

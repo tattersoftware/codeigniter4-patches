@@ -4,6 +4,11 @@ use Tatter\Patches\Patches;
 
 class AfterUpdateTest extends \Tests\Support\VirtualTestCase
 {
+	/**
+	 * @var Tatter\Patches\Test\MockUpdater
+	 */
+	protected $updater;
+
 	public function setUp(): void
 	{
 		parent::setUp();
@@ -12,62 +17,72 @@ class AfterUpdateTest extends \Tests\Support\VirtualTestCase
 		$this->config->ignoredSources[] = 'Framework';
 
 		$this->patches = new Patches($this->config);
-		$this->patches->beforeUpdate();
 
-		$this->mockUpdate();
+		$this->patches->beforeUpdate();
+		$this->patches->update();
+
+		// Get the MockUpdater instance to compare files
+		$this->updater = $this->patches->getUpdater();
 	}
 
-	public function testAfterUpdateSetsChangedFiles()
+	public function testSetsChangedFiles()
 	{
 		$this->patches->afterUpdate();
 
-		$expected = [
-			'app/ThirdParty/TestSource/lorem.txt',
-		];
+		$expected = str_replace($this->source, 'app/ThirdParty/TestSource/', $this->updater->changedFiles);
 
-		$this->assertEquals($expected, $this->patches->getCodex()->changedFiles);
+		$this->assertEqualsCanonicalizing($expected, $this->patches->getCodex()->changedFiles);
 	}
 
-	public function testAfterUpdateCreatesCurrent()
+	public function testCreatesCurrent()
 	{
 		$this->patches->afterUpdate();
 
 		$this->assertDirectoryExists($this->patches->getWorkspace() . 'current');
 	}
 
-	public function testAfterUpdateCopiesChangedFiles()
+	public function testCopiesChangedFiles()
 	{
 		$this->patches->afterUpdate();
 
-		$this->assertFileExists($this->patches->getWorkspace() . 'current/app/ThirdParty/TestSource/lorem.txt');
+		$file = str_replace($this->source, 'app/ThirdParty/TestSource/', $this->updater->changedFiles[0]);
+
+		$this->assertFileExists($this->patches->getWorkspace() . 'current/' . $file);
 	}
 
-	public function testAfterUpdateSetsAddedFiles()
+	public function testSetsAddedFiles()
 	{
 		$this->patches->afterUpdate();
 
-		$expected = [
-			'app/ThirdParty/TestSource/src/definition.json',
-		];
+		$expected = str_replace($this->source, 'app/ThirdParty/TestSource/', $this->updater->addedFiles);
 
-		$this->assertEquals($expected, $this->patches->getCodex()->addedFiles);
+		$this->assertEqualsCanonicalizing($expected, $this->patches->getCodex()->addedFiles);
 	}
 
-	public function testAfterUpdateCopiesAddedFiles()
+	public function testCopiesAddedFiles()
 	{
 		$this->patches->afterUpdate();
 
-		$this->assertFileExists($this->patches->getWorkspace() . 'current/app/ThirdParty/TestSource/src/definition.json');
+		$file = str_replace($this->source, 'app/ThirdParty/TestSource/', $this->updater->addedFiles[0]);
+
+		$this->assertFileExists($this->patches->getWorkspace() . 'current/' . $file);
 	}
 
-	public function testAfterUpdateSetsDeletedFiles()
+	public function testSetsDeletedFiles()
 	{
 		$this->patches->afterUpdate();
 
-		$expected = [
-			'app/ThirdParty/TestSource/images/cat.jpg',
-		];
+		$expected = str_replace($this->source, 'app/ThirdParty/TestSource/', $this->updater->deletedFiles);
 
-		$this->assertEquals($expected, $this->patches->getCodex()->deletedFiles);
+		$this->assertEqualsCanonicalizing($expected, $this->patches->getCodex()->deletedFiles);
+	}
+
+	public function testExcludesDeletedFiles()
+	{
+		$this->patches->afterUpdate();
+
+		$file = str_replace($this->source, 'app/ThirdParty/TestSource/', $this->updater->deletedFiles[0]);
+
+		$this->assertFileNotExists($this->patches->getWorkspace() . 'current/' . $file);
 	}
 }
