@@ -15,6 +15,13 @@ use Tatter\Patches\Interfaces\UpdaterInterface;
 class MockUpdater extends BaseHandler implements UpdaterInterface
 {
 	/**
+	 * Array of vendor files to choose from for manipulations.
+	 *
+	 * @var array
+	 */
+	protected $vendorFiles;
+
+	/**
 	 * Array of relative paths to files changed by updating
 	 *
 	 * @var array|null
@@ -36,7 +43,7 @@ class MockUpdater extends BaseHandler implements UpdaterInterface
 	public $deletedFiles;
 
 	/**
-	 * Initialize the handler with a Codex.
+	 * Initialize the handler and helper, set the count, and gather eligible files.
 	 *
 	 * @param Codex $codex
 	 */
@@ -44,10 +51,14 @@ class MockUpdater extends BaseHandler implements UpdaterInterface
 	{
 		parent::__construct($codex);
 
+		helper('text');
+
+		$this->gatherFiles();
+
 		// Determine how many changes to make
 		if (! isset($this->codex->mockCount))
 		{
-			$count = count($this->codex->legacyFiles);
+			$count = count($this->vendorFiles);
 
 			if ($count < 10)
 			{
@@ -69,7 +80,7 @@ class MockUpdater extends BaseHandler implements UpdaterInterface
 	}
 
 	/**
-	 * Manipulate random files in vendor.
+	 * Manipulate random legacy files.
 	 *
 	 * @throws UpdateException
 	 */
@@ -79,32 +90,56 @@ class MockUpdater extends BaseHandler implements UpdaterInterface
 
 		for ($i = 0; $i < $this->codex->mockCount; $i++)
 		{
-			switch (rand(1,3))
+			$file = $this->getFile();
+			$rand = rand(1,4);
+
+			// Always add if no file was available
+			if ($rand === 1 || empty($file))
 			{
-				// Change
-				case 1:
-					$file = $this->getFile();
+				$newFile = pathinfo($file, PATHINFO_DIRNAME) . '/' . random_string() . '.' . random_string('alpha', 3);
 
-					$this->fillFile($this->codex->config->rootPath . 'vendor/' . $file);
-
-					$this->changedFiles[] = $file;
-				break;
-
-				// Add
-				case 2:
-					$this->fillFile($this->codex->config->rootPath . 'vendor/' . $file);
-
-					$this->addedFiles[] = $file;
-				break;
-
-				// Delete
-				case 3:
-					unlink($this->codex->config->rootPath . 'vendor/' . $file);
-
-					$this->deletedFiles[] = $file;
-				break;
+				$this->fillFile($newFile);
+				$this->addedFiles[] = $newFile;
+			}
+			// Delete
+			elseif($rand === 2)
+			{
+				unlink($file);
+				$this->deletedFiles[] = $file;
+			}
+			// Change
+			else
+			{
+				$this->fillFile($file);
+				$this->changedFiles[] = $file;
 			}
 		}
+	}
+
+	/**
+	 * Gather eligible files from the vendor directory
+	 *
+	 * @return $this
+	 */
+	protected function gatherFiles(): self
+	{
+		$this->vendorFiles = [];
+
+		// Get individual filenames
+		foreach (get_filenames($this->codex->config->rootPath . 'vendor', true, true) as $filename)
+		{
+			if (is_file($filename))
+			{
+				$this->vendorFiles[] = $filename;
+			}
+		}
+
+		// Ignore metadata
+		$this->vendorFiles = preg_grep('#vendor/autoload\.php#', $this->vendorFiles, PREG_GREP_INVERT);
+		$this->vendorFiles = preg_grep('#vendor/bin/#', $this->vendorFiles, PREG_GREP_INVERT);
+		$this->vendorFiles = preg_grep('#vendor/composer/#', $this->vendorFiles, PREG_GREP_INVERT);
+
+		return $this;
 	}
 
 	/**
@@ -115,7 +150,7 @@ class MockUpdater extends BaseHandler implements UpdaterInterface
 	protected function getFile(): ?string
 	{
 		// Ignore deleted files
-		$files = array_diff($this->codex->legacyFiles, $this->deletedFiles);
+		$files = array_diff($this->vendorFiles, $this->deletedFiles);
 
 		if (empty($files))
 		{
