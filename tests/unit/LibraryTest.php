@@ -2,11 +2,13 @@
 
 use Tatter\Patches\Patches;
 
-class LibraryTest extends \Tests\Support\VirtualTestCase
+class LibraryTest extends \Tests\Support\MockProjectTestCase
 {
-	public function testIsDefinedVirtualPath()
+	use \Tests\Support\VirtualTestTrait;
+
+	public function testIsDefinedMockProjectPath()
 	{
-		$test = defined('VIRTUALPATH');
+		$test = defined('MOCKPROJECTPATH');
 
 		$this->assertTrue($test);
 	}
@@ -29,9 +31,9 @@ class LibraryTest extends \Tests\Support\VirtualTestCase
 	{
 		$patches = new Patches($this->config);
 
-		$patches->setWorkspace(VIRTUALPATH . 'foo');
+		$patches->setWorkspace(MOCKPROJECTPATH . 'foo');
 
-		$this->assertDirectoryExists(VIRTUALPATH . 'foo');
+		$this->assertDirectoryExists(MOCKPROJECTPATH . 'foo');
 	}
 
 	public function testGatherSourcesFindsAll()
@@ -66,15 +68,15 @@ class LibraryTest extends \Tests\Support\VirtualTestCase
 
 		$expected = [
 			[
-				'from' => VIRTUALPATH . 'vendor/testsource/images/cat.jpg',
+				'from' => MOCKPROJECTPATH . 'vendor/testsource/images/cat.jpg',
 				'to'   => 'app/ThirdParty/TestSource/images/cat.jpg',
 			],
 			[
-				'from' => VIRTUALPATH . 'vendor/testsource/lorem.txt',
+				'from' => MOCKPROJECTPATH . 'vendor/testsource/lorem.txt',
 				'to'   => 'app/ThirdParty/TestSource/lorem.txt',
 			],
 			[
-				'from' => VIRTUALPATH . 'vendor/testsource/static.js',
+				'from' => MOCKPROJECTPATH . 'vendor/testsource/static.js',
 				'to'   => 'app/ThirdParty/TestSource/static.js',
 			],
 		];
@@ -86,9 +88,9 @@ class LibraryTest extends \Tests\Support\VirtualTestCase
 	public function testCopyPathsCopiesFilesToDestination()
 	{
 		$patches = new Patches($this->config);
-		$patches->copyPaths(VIRTUALPATH . 'foo');
+		$patches->copyPaths(MOCKPROJECTPATH . 'foo');
 
-		$this->assertFileExists(VIRTUALPATH . 'foo/app/ThirdParty/TestSource/lorem.txt');
+		$this->assertFileExists(MOCKPROJECTPATH . 'foo/app/ThirdParty/TestSource/lorem.txt');
 	}
 
 	public function testCopyPathsReturnsPaths()
@@ -97,7 +99,7 @@ class LibraryTest extends \Tests\Support\VirtualTestCase
 
 		$patches = new Patches($this->config);
 
-		$paths = $patches->copyPaths(VIRTUALPATH . 'foo');
+		$paths = $patches->copyPaths(MOCKPROJECTPATH . 'foo');
 
 		$expected = [
 			'app/ThirdParty/TestSource/images/cat.jpg',

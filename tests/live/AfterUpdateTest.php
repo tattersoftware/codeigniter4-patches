@@ -2,8 +2,10 @@
 
 use Tatter\Patches\Patches;
 
-class AfterUpdateTest extends \Tests\Support\VirtualTestCase
+class AfterUpdateTest extends \Tests\Support\MockProjectTestCase
 {
+	use \Tests\Support\VirtualTestTrait;
+
 	/**
 	 * @var Tatter\Patches\Test\MockUpdater
 	 */

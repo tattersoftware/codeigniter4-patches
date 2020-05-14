@@ -76,7 +76,7 @@ class CopyHandler extends BaseHandler implements MergerInterface
 					unlink($project);
 				}
 				// WIP - For now consider this a conflict
-				if ($this->codex->config->allowDeletes)
+				else
 				{
 					$this->codex->conflicts['deleted'][] = $file;
 				}

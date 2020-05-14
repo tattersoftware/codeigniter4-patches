@@ -3,8 +3,10 @@
 use CodeIgniter\Events\Events;
 use Tatter\Patches\Patches;
 
-class SourceTest extends \Tests\Support\VirtualTestCase
+class SourceTest extends \Tests\Support\MockProjectTestCase
 {
+	use \Tests\Support\VirtualTestTrait;
+
 	public function testEventsTrigger()
 	{
 		$GLOBALS['testSourceDidPrepatch'] = false;

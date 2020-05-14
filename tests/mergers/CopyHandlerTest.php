@@ -3,8 +3,10 @@
 use Tatter\Patches\Handlers\Mergers\CopyHandler;
 use Tatter\Patches\Patches;
 
-class CopyHandlerTest extends \Tests\Support\VirtualTestCase
+class CopyHandlerTest extends \Tests\Support\MockProjectTestCase
 {
+	use \Tests\Support\VirtualTestTrait;
+
 	/**
 	 * @var Tatter\Patches\Test\MockUpdater
 	 */
@@ -39,25 +41,24 @@ class CopyHandlerTest extends \Tests\Support\VirtualTestCase
 	{
 		$this->handler->merge();
 
-		$expected = [
-			'app/ThirdParty/TestSource/lorem.txt',
-			'app/ThirdParty/TestSource/src/definition.json',
-		];
+		$expected = str_replace($this->source, 'app/ThirdParty/TestSource/',
+			array_merge($this->updater->addedFiles, $this->updater->changedFiles));
 
-		$this->assertEquals($expected, $this->codex->mergedFiles);
+		$this->assertEqualsCanonicalizing($expected, $this->codex->mergedFiles);
 	}
 
 	public function testReturnsConflictFiles()
 	{
 		// Create some content where a file will be added
-		mkdir($this->project . 'app/ThirdParty/TestSource/src', 0700, true);
-		file_put_contents($this->project . 'app/ThirdParty/TestSource/src/definition.json', 'Seat taken');
+		$file = str_replace($this->source, 'app/ThirdParty/TestSource/', $this->updater->addedFiles[0]);
+		ensure_file_dir($this->project . $file);
+		file_put_contents($this->project . $file, 'Seat taken');
 
 		$this->handler->merge();
 
 		$expected = [
 			'changed' => [],
-			'added'   => ['app/ThirdParty/TestSource/src/definition.json'],
+			'added'   => [$file],
 			'deleted' => [],
 		];
 
@@ -68,16 +69,17 @@ class CopyHandlerTest extends \Tests\Support\VirtualTestCase
 	{
 		$this->handler->merge();
 
-		$expected = 'All your base are belong to us.';
-		$contents = file_get_contents($this->project . 'app/ThirdParty/TestSource/lorem.txt');
-
-		$this->assertEquals($expected, $contents);
+		$file = str_replace($this->source, $this->project . 'app/ThirdParty/TestSource/', $this->updater->changedFiles[0]);
+		$contents = file_get_contents($file);
+		$this->assertTrue(ctype_xdigit($contents));
 	}
 
 	public function testAddsFile()
 	{
 		$this->handler->merge();
 
-		$this->assertFileExists($this->project . 'app/ThirdParty/TestSource/src/definition.json');
+		$file = str_replace($this->source, $this->project . 'app/ThirdParty/TestSource/', $this->updater->addedFiles[0]);
+
+		$this->assertFileExists($file);
 	}
 }

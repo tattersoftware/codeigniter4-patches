@@ -2,8 +2,10 @@
 
 use Tatter\Patches\Patches;
 
-class BeforeUpdateTest extends \Tests\Support\VirtualTestCase
+class BeforeUpdateTest extends \Tests\Support\MockProjectTestCase
 {
+	use \Tests\Support\VirtualTestTrait;
+
 	public function setUp(): void
 	{
 		parent::setUp();

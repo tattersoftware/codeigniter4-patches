@@ -1,7 +1,9 @@
 <?php
 
-class HelperTest extends \Tests\Support\VirtualTestCase
+class HelperTest extends \Tests\Support\MockProjectTestCase
 {
+	use \Tests\Support\VirtualTestTrait;
+
 	public function setUp(): void
 	{
 		parent::setUp();
@@ -11,23 +13,23 @@ class HelperTest extends \Tests\Support\VirtualTestCase
 
 	public function testCopyPathCreatesDirectory()
 	{
-		copy_path($this->source . 'lorem.txt', VIRTUALPATH . 'foobar/lorem.txt');
+		copy_path($this->source . 'lorem.txt', MOCKPROJECTPATH . 'foobar/lorem.txt');
 
-		$this->assertDirectoryExists(VIRTUALPATH . 'foobar');
+		$this->assertDirectoryExists(MOCKPROJECTPATH . 'foobar');
 	}
 
 	public function testCopyPathCopiesFile()
 	{
-		copy_path($this->source . 'lorem.txt', VIRTUALPATH . 'foobar/lorem.txt');
+		copy_path($this->source . 'lorem.txt', MOCKPROJECTPATH . 'foobar/lorem.txt');
 
-		$this->assertFileExists(VIRTUALPATH . 'foobar/lorem.txt');
+		$this->assertFileExists(MOCKPROJECTPATH . 'foobar/lorem.txt');
 	}
 
 	public function testSameFileSucceeds()
 	{
-		copy_path($this->source . 'lorem.txt', VIRTUALPATH . 'foobar/lorem.txt');
+		copy_path($this->source . 'lorem.txt', MOCKPROJECTPATH . 'foobar/lorem.txt');
 
-		$this->assertTrue(same_file($this->source . 'lorem.txt', VIRTUALPATH . 'foobar/lorem.txt'));
+		$this->assertTrue(same_file($this->source . 'lorem.txt', MOCKPROJECTPATH . 'foobar/lorem.txt'));
 	}
 
 	public function testSameFileFailsDifferentFiles()

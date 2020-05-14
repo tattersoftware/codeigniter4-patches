@@ -6,8 +6,11 @@ use Tatter\Patches\Handlers\Updaters\ComposerHandler;
 use Tatter\Patches\Patches;
 use Tatter\Patches\Test\MockUpdater;
 
-class MockUpdaterTest extends \Tests\Support\VirtualTestCase
+class MockUpdaterTest extends \Tests\Support\MockProjectTestCase
 {
+	// Virtual paths don't support chdir() so we need to test on the filesystem
+	use \Tests\Support\LocalTestTrait;
+
 	/**
 	 * @var Codex
 	 */
@@ -25,9 +28,6 @@ class MockUpdaterTest extends \Tests\Support\VirtualTestCase
 		helper('filesystem');
 
 		$this->config->updater = 'Tatter\Patches\Test\MockUpdater';
-
-		// Virtual paths don't support chdir() so we need to test on the filesystem
-		$this->config->rootPath = SUPPORTPATH . 'MockProject/';
 		$this->codex = new Codex($this->config);
 
 		// MockUpdater relies on legacyFiles so we will stage some with ComposerHandler
@@ -35,13 +35,6 @@ class MockUpdaterTest extends \Tests\Support\VirtualTestCase
 		$composer->update();
 
 		$this->handler = new MockUpdater($this->codex);
-	}
-
-	public function tearDown(): void
-	{
-		parent::tearDown();
-
-		$this->removeComposerFiles();
 	}
 
 	public function testMockUpdaterSetsProperties()
