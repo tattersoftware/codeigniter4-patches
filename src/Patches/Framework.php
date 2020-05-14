@@ -6,13 +6,6 @@ use Tatter\Patches\Interfaces\SourceInterface;
 class Framework extends BaseSource implements SourceInterface
 {
 	/**
-	 * Whether files removed upstream should be deleted locally.
-	 *
-	 * @var bool
-	 */
-	public $delete = true;
-
-	/**
 	 * Array of paths to check during patching.
 	 * Required: from (absolute), to (relative)
 	 * Optional: exclude

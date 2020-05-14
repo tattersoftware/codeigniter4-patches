@@ -6,13 +6,6 @@ use Tatter\Patches\Interfaces\SourceInterface;
 class TestSource extends BaseSource implements SourceInterface
 {
 	/**
-	 * Whether files removed upstream should be deleted locally.
-	 *
-	 * @var bool
-	 */
-	public $delete = true;
-
-	/**
 	 * Array of paths to check during patching.
 	 * Required: from, to
 	 * Optional: exclude
@@ -21,7 +14,7 @@ class TestSource extends BaseSource implements SourceInterface
 	 */
 	public $paths = [
 		[
-			'from'    => VIRTUALPATH . 'vendor/testsource',
+			'from'    => MOCKPROJECTPATH . 'vendor/testsource',
 			'to'      => 'app/ThirdParty/TestSource',
 		],
 	];
