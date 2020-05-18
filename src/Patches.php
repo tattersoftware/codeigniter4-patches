@@ -99,6 +99,9 @@ class Patches
 		// Always log it
 		log_message($error ? 'error' : 'debug', $message);
 
+		// Add it to the Codex with a timestamp
+		$this->codex->logs[] = '[' . date('Y-m-d H:i:s') . '] ' . $message;
+
 		// For CLI calls write the output
 		if (is_cli() && ENVIRONMENT !== 'testing')
 		{
@@ -108,7 +111,7 @@ class Patches
 		// If it was an error then store it
 		if ($error)
 		{
-			$this->codex->errors[] = $error;
+			$this->codex->errors[] = $message;
 		}
 
 		return $this;

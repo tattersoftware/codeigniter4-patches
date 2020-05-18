@@ -25,6 +25,13 @@ class Codex implements JsonSerializable
 	public $errors = [];
 
 	/**
+	 * Log of messages from status()
+	 *
+	 * @var array
+	 */
+	public $logs = [];
+
+	/**
 	 * Path to the working directory.
 	 *
 	 * @var string
