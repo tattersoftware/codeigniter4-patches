@@ -27,15 +27,15 @@ class Framework extends BaseSource implements SourceInterface
 		],
 		[
 			'from'    => SYSTEMPATH . '../spark',
-			'to'      => '.',
+			'to'      => '',
 		],
 		[
 			'from'    => SYSTEMPATH . '../env',
-			'to'      => '.',
+			'to'      => '',
 		],
 		[
 			'from'    => SYSTEMPATH . '../builds',
-			'to'      => '.',
+			'to'      => '',
 		],
 	];
 }

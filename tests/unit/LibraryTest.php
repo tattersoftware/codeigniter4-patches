@@ -6,13 +6,6 @@ class LibraryTest extends \Tests\Support\MockProjectTestCase
 {
 	use \Tests\Support\VirtualTestTrait;
 
-	public function testIsDefinedMockProjectPath()
-	{
-		$test = defined('MOCKPROJECTPATH');
-
-		$this->assertTrue($test);
-	}
-
 	public function testConstructCreatesWorkspace()
 	{
 		$patches = new Patches($this->config);
@@ -31,9 +24,9 @@ class LibraryTest extends \Tests\Support\MockProjectTestCase
 	{
 		$patches = new Patches($this->config);
 
-		$patches->setWorkspace(MOCKPROJECTPATH . 'foo');
+		$patches->setWorkspace(self::$project . 'foo');
 
-		$this->assertDirectoryExists(MOCKPROJECTPATH . 'foo');
+		$this->assertDirectoryExists(self::$project . 'foo');
 	}
 
 	public function testGatherSourcesFindsAll()
@@ -68,15 +61,15 @@ class LibraryTest extends \Tests\Support\MockProjectTestCase
 
 		$expected = [
 			[
-				'from' => MOCKPROJECTPATH . 'vendor/testsource/images/cat.jpg',
+				'from' => self::$project . 'vendor/testsource/images/cat.jpg',
 				'to'   => 'app/ThirdParty/TestSource/images/cat.jpg',
 			],
 			[
-				'from' => MOCKPROJECTPATH . 'vendor/testsource/lorem.txt',
+				'from' => self::$project . 'vendor/testsource/lorem.txt',
 				'to'   => 'app/ThirdParty/TestSource/lorem.txt',
 			],
 			[
-				'from' => MOCKPROJECTPATH . 'vendor/testsource/static.js',
+				'from' => self::$project . 'vendor/testsource/static.js',
 				'to'   => 'app/ThirdParty/TestSource/static.js',
 			],
 		];
@@ -88,9 +81,9 @@ class LibraryTest extends \Tests\Support\MockProjectTestCase
 	public function testCopyPathsCopiesFilesToDestination()
 	{
 		$patches = new Patches($this->config);
-		$patches->copyPaths(MOCKPROJECTPATH . 'foo');
+		$patches->copyPaths(self::$project . 'foo');
 
-		$this->assertFileExists(MOCKPROJECTPATH . 'foo/app/ThirdParty/TestSource/lorem.txt');
+		$this->assertFileExists(self::$project . 'foo/app/ThirdParty/TestSource/lorem.txt');
 	}
 
 	public function testCopyPathsReturnsPaths()
@@ -99,7 +92,7 @@ class LibraryTest extends \Tests\Support\MockProjectTestCase
 
 		$patches = new Patches($this->config);
 
-		$paths = $patches->copyPaths(MOCKPROJECTPATH . 'foo');
+		$paths = $patches->copyPaths(self::$project . 'foo');
 
 		$expected = [
 			'app/ThirdParty/TestSource/images/cat.jpg',

@@ -13,7 +13,7 @@ class SourceTest extends \Tests\Support\MockProjectTestCase
 
 		$patches = new Patches($this->config);
 
-		$result  = Events::trigger('prepatch', $this->project, []);
+		$result  = Events::trigger('prepatch', self::$project, []);
 
 		$this->assertTrue($result);
 		$this->assertTrue($GLOBALS['testSourceDidPrepatch']);

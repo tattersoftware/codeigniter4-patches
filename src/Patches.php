@@ -256,7 +256,7 @@ class Patches
 		{
 			foreach ($instance->paths as $path)
 			{
-				$path['to'] = rtrim($path['to'], '/') . '/';
+				$path['to'] = empty($path['to']) ? '' : rtrim($path['to'], '/') . '/';
 
 				if (is_dir($path['from']))
 				{
@@ -279,7 +279,7 @@ class Patches
 				{
 					$paths[] = [
 						'from' => $path['from'],
-						'to'   => $path['to'] . str_replace($path['from'], '', $filename) . pathinfo($path['from'], PATHINFO_BASENAME),
+						'to'   => $path['to'] . pathinfo($path['from'], PATHINFO_BASENAME),
 					];
 				}
 			}
@@ -441,7 +441,7 @@ class Patches
 		}
 		
 		$s = $this->codex->mergedFiles == 1 ? '' : 's';
-		$this->status(count($this->codex->mergedFiles) . "file{$s} merged");
+		$this->status(count($this->codex->mergedFiles) . " file{$s} merged");
 
 		// If events are allowed then trigger postpatch
 		if ($this->codex->config->allowEvents)

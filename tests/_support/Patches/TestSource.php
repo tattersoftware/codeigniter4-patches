@@ -2,6 +2,7 @@
 
 use Tatter\Patches\BaseSource;
 use Tatter\Patches\Interfaces\SourceInterface;
+use Tests\Support\MockProjectTestCase;
 
 class TestSource extends BaseSource implements SourceInterface
 {
@@ -12,12 +13,22 @@ class TestSource extends BaseSource implements SourceInterface
 	 *
 	 * @var array
 	 */
-	public $paths = [
-		[
-			'from'    => MOCKPROJECTPATH . 'vendor/testsource',
-			'to'      => 'app/ThirdParty/TestSource',
-		],
-	];
+	public $paths;
+
+	/**
+	 * Record the project path.
+	 */
+	public function __construct()
+	{
+		parent::__construct();
+
+		$this->paths = [
+			[
+				'from'    => MockProjectTestCase::$project . 'vendor/testsource',
+				'to'      => 'app/ThirdParty/TestSource',
+			],
+		];
+	}
 
 	/**
 	 * Run a simulate prepatch event.

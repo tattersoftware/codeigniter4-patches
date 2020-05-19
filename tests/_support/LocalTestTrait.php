@@ -10,10 +10,10 @@ trait LocalTestTrait
 		}
 
 		// Create the temp directory
-		$this->project = tempdir() . '/';
+		self::$project = tempdir() . '/';
 
 		// Copy the mock project to it
-		copy_directory_recursive(SUPPORTPATH . 'MockProject', $this->project);
+		copy_directory_recursive(SUPPORTPATH . 'MockProject', self::$project);
 	}
 
 	public function tearDownProject()
@@ -24,9 +24,9 @@ trait LocalTestTrait
 		}
 
 		// Hidden directories need to be removed manually
-		@unlink($this->project . 'vendor/laminas/laminas-zendframework-bridge/.github/FUNDING.yml');
-		@rmdir($this->project . 'vendor/laminas/laminas-zendframework-bridge/.github');
+		@unlink(self::$project . 'vendor/laminas/laminas-zendframework-bridge/.github/FUNDING.yml');
+		@rmdir(self::$project . 'vendor/laminas/laminas-zendframework-bridge/.github');
 
-		delete_files($this->project, true);
+		delete_files(self::$project, true);
 	}
 }

@@ -51,8 +51,8 @@ class CopyHandlerTest extends \Tests\Support\MockProjectTestCase
 	{
 		// Create some content where a file will be added
 		$file = str_replace($this->source, 'app/ThirdParty/TestSource/', $this->updater->addedFiles[0]);
-		ensure_file_dir($this->project . $file);
-		file_put_contents($this->project . $file, 'Seat taken');
+		ensure_file_dir(self::$project . $file);
+		file_put_contents(self::$project . $file, 'Seat taken');
 
 		$this->handler->merge();
 
@@ -69,7 +69,7 @@ class CopyHandlerTest extends \Tests\Support\MockProjectTestCase
 	{
 		$this->handler->merge();
 
-		$file = str_replace($this->source, $this->project . 'app/ThirdParty/TestSource/', $this->updater->changedFiles[0]);
+		$file = str_replace($this->source, self::$project . 'app/ThirdParty/TestSource/', $this->updater->changedFiles[0]);
 		$contents = file_get_contents($file);
 		$this->assertTrue(ctype_xdigit($contents));
 	}
@@ -78,7 +78,7 @@ class CopyHandlerTest extends \Tests\Support\MockProjectTestCase
 	{
 		$this->handler->merge();
 
-		$file = str_replace($this->source, $this->project . 'app/ThirdParty/TestSource/', $this->updater->addedFiles[0]);
+		$file = str_replace($this->source, self::$project . 'app/ThirdParty/TestSource/', $this->updater->addedFiles[0]);
 
 		$this->assertFileExists($file);
 	}

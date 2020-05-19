@@ -9,7 +9,7 @@ class MockProjectTestCase extends CIUnitTestCase
 	/**
 	 * @var string  Path to the mocked project, set by setUpProject
 	 */
-	protected $project;
+	static public $project;
 
 	/**
 	 * @var string  Path to the mocked package source
@@ -20,16 +20,17 @@ class MockProjectTestCase extends CIUnitTestCase
 	{
 		parent::setUp();
 
-		$this->setUpProject();
+		helper('patches');
 
-		defined('MOCKPROJECTPATH') || define('MOCKPROJECTPATH', $this->project);
-		$this->source = $this->project . 'vendor/testsource/';
+		$this->setUpProject();
+		$this->source = self::$project . 'vendor/testsource/';
 
 		// Standardize testing config
 		$this->config           = new \Tatter\Patches\Config\Patches();
-		$this->config->basePath = $this->project . 'writable/patches';
-		$this->config->rootPath = $this->project;
+		$this->config->basePath = self::$project . 'writable/patches';
+		$this->config->rootPath = self::$project;
 		$this->config->updater  = 'Tatter\Patches\Test\MockUpdater';
+		$this->config->ignoredSources[] = 'FrameworkTest';
 	}
 
 	public function tearDown(): void

@@ -15,7 +15,7 @@ trait VirtualTestTrait
 		$this->root = vfsStream::setup();
 		vfsStream::copyFromFileSystem(SUPPORTPATH . 'MockProject', $this->root);
 
-		$this->project = $this->root->url() . '/';
+		self::$project = $this->root->url() . '/';
 	}
 
 	public function tearDownProject()
