@@ -88,6 +88,18 @@ class Codex implements JsonSerializable
 	}
 
 	/**
+	 * Write out the codex to its workspace
+	 *
+	 * @return self
+	 */
+	public function save()
+	{
+		file_put_contents($this->workspace . 'codex.json', json_encode($this, JSON_PRETTY_PRINT));
+
+		return $this;
+	}
+
+	/**
 	 * Support for json_encode()
 	 *
 	 * @return array|mixed

@@ -80,6 +80,9 @@ class Patches
 		// Call the chosen merging method
 		$this->merge();
 
+		// Write out the Codex
+		$this->codex->save();
+
 		return $result;
 	}
 
@@ -420,7 +423,7 @@ class Patches
 	public function merge(): bool
 	{
 		// Ensure a trailing slash on the destination
-		$this->codex->config->destination = rtrim($this->codex->config->destination, '/') . '/';
+		$this->codex->config->rootPath = rtrim($this->codex->config->rootPath, '/') . '/';
 
 		$this->merger = new $this->codex->config->merger($this->codex);
 
