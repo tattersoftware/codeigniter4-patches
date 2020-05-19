@@ -23,11 +23,10 @@ trait LocalTestTrait
 			helper('filesystem');
 		}
 
-		delete_files($this->project, true);
+		// Hidden directories need to be removed manually
+		@unlink($this->project . 'vendor/laminas/laminas-zendframework-bridge/.github/FUNDING.yml');
+		@rmdir($this->project . 'vendor/laminas/laminas-zendframework-bridge/.github');
 
-		if (is_dir($this->project))
-		{
-			rmdir($this->project);
-		}
+		delete_files($this->project, true);
 	}
 }

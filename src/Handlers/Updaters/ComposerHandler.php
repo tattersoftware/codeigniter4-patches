@@ -30,10 +30,6 @@ class ComposerHandler extends BaseHandler implements UpdaterInterface
 		{
 			$params['--quiet'] = true;
 		}
-		else
-		{
-			$params['--verbose'] = true;
-		}
 
 		$input = new ArrayInput($params);
 
