@@ -27,6 +27,9 @@ class FrameworkTest extends \Tests\Support\MockProjectTestCase
 		// Copy in the folders
 		copy_directory_recursive(self::$project . 'vendor/codeigniter4/framework', self::$project);
 
+		// Create a conflict
+		file_put_contents(self::$project . 'app/Config/Mimes.php', bin2hex(random_bytes(128)));
+
 		// Set composer.json back to latest
 		$array['require']['codeigniter4/framework'] = '^4.0';
 		file_put_contents(self::$project . 'composer.json', json_encode($array, JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES) . PHP_EOL);
@@ -46,12 +49,11 @@ class FrameworkTest extends \Tests\Support\MockProjectTestCase
 		$this->assertGreaterThan(0, count($this->codex->legacyFiles));
 		$this->assertGreaterThan(0, count($this->codex->changedFiles));
 		$this->assertGreaterThan(0, count($this->codex->addedFiles));
-		$this->assertGreaterThan(0, count($this->codex->mergedFiles));
+		$this->assertGreaterThan(0, count($this->codex->conflicts['changed']));
 	}
 
 	public function testHasAddedFiles()
 	{
-d($this->codex);
 		$this->assertFileExists(self::$project . $this->codex->addedFiles[0]);
 	}
 }
