@@ -2,10 +2,7 @@
 
 use CodeIgniter\CLI\BaseCommand;
 use CodeIgniter\CLI\CLI;
-use Composer\Console\Application;
-use Symfony\Component\Console\Input\ArrayInput;
 use Tatter\Patches\Patches;
-
 
 class SelfUpdate extends BaseCommand
 {
@@ -27,6 +24,7 @@ class SelfUpdate extends BaseCommand
     public function run(array $params)
     {
 		CLI::write('Beginning patch process');
+
 		$this->patches = new Patches();
 
 		// Display config info
@@ -45,39 +43,122 @@ class SelfUpdate extends BaseCommand
 			['Ignored',   $codex->config->ignoredSources ? implode(', ', $codex->config->ignoredSources) : 'None'],
 		]);
 
-		$this->menu();
-return;
 		// Run everything up to the merge
 		$this->patches->beforeUpdate();
 		$this->patches->update();
 		$this->patches->afterUpdate();
 
-		$this->menu();
+
+		// Display the menu, if user selects "quit" then abort
+		if (! $this->mergeMenu())
+		{
+			CLI::write('Patch aborted. Workspace with codex and files:');
+			CLI::write($codex->workspace);
+
+			// Write out the Codex
+			$this->patches->getCodex()->save();
+
+			return;
+		}
 
 		// Call the chosen merging method
 		$this->patches->merge();
 
 		// Write out the Codex
-		$this->patches->getCodex->save();
+		$this->patches->getCodex()->save();
 
 		return $result;
 	}
 
 	/**
 	 * Display and process the main menu
+	 *
+	 * @return bool  Whether or not to continue with merge
 	 */
-    public function menu()
+    protected function mergeMenu()
     {
-		CLI::write('What would you like to do:');
-		CLI::write('(M)erge the files');
-		CLI::write('(S)how all files');
-		CLI::write('Show (C)hanged files');
-		CLI::write('Show (A)dded files');
+		$codex  = $this->patches->getCodex();
+		$counts = [
+			'changed' => count($codex->changedFiles),
+			'added'   => count($codex->addedFiles),
+			'deleted' => count($codex->deletedFiles),
+		];
+		
+		if (! array_sum($counts))
+		{
+			CLI::write('No files to merge!', 'yellow');
+			CLI::write('(P)roceed');
+			CLI::write('(Q)uit');
+			return CLI::prompt('Selection?', ['p', 'q']) === 'p';
+		}
 
-    	switch (CLI::prompt('Selection?', ['m', 's', 'c', 'a']))
+		CLI::write('What would you like to do:');
+		CLI::write('(P)roceed with the merge');
+		CLI::write('(S)how all files');
+		CLI::write('Show (C)hanged files (' . $counts['changed'] . ')');
+		CLI::write('Show (A)dded files (' . $counts['added'] . ')');
+		CLI::write('Show (D)eleted files (' . $counts['deleted'] . ')');
+		CLI::write('(Q)uit');
+
+    	switch (CLI::prompt('Selection?', ['p', 's', 'c', 'a', 'd', 'q']))
     	{
-    		default:
-    			CLI::write('Good choice!');
+    		case 'p':
+    			return true;
+    		break;
+
+    		case 'q':
+    			return false;
+    		break;
+
+    		case 's':
+    			$this->showFiles($codex->changedFiles, 'Changed');
+    			$this->showFiles($codex->addedFiles, 'Added');
+    			$this->showFiles($codex->deletedFiles, 'Deleted');
+    		break;
+
+    		case 'c':
+    			$this->showFiles($codex->changedFiles, 'Changed');
+    		break;
+
+    		case 'a':
+    			$this->showFiles($codex->addedFiles, 'Added');
+    		break;
+
+    		case 'd':
+    			$this->showFiles($codex->deletedFiles, 'Deleted');
+    		break;
     	}
+    	
+    	// If a non-returning item was select then run the menu again
+    	return $this->mergeMenu();
+    }
+
+	/**
+	 * Display files in a table list.
+	 *
+	 * @param array $files    Array of files to list
+	 * @param string $status  Changed/Added/Deleted
+	 *
+	 * @return $this
+	 */
+    protected function showFiles(array $files, string $status): self
+    {
+    	if (empty($files))
+    	{
+			CLI::write('No ' . strtolower($status) . ' files', 'yellow');
+			return $this;
+    	}
+
+    	$thead = ['File', 'Status', 'Diff'];
+    	$tbody = [];
+
+    	foreach ($files as $file)
+    	{
+    		$tbody[] = [$file, $status, ''];
+    	}
+
+		CLI::table($tbody, $thead);
+
+    	return $this;
     }
 }

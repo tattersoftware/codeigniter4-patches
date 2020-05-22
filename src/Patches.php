@@ -3,6 +3,8 @@
 use CodeIgniter\CLI\CLI;
 use CodeIgniter\Config\BaseConfig;
 use CodeIgniter\Events\Events;
+use SebastianBergmann\Diff\Differ;
+use SebastianBergmann\Diff\Output\DiffOnlyOutputBuilder;
 use Tatter\Patches\Codex;
 use Tatter\Patches\Exceptions\ExceptionInterface;
 use Tatter\Patches\Interfaces\MergerInterface;
@@ -43,6 +45,13 @@ class Patches
 	 * @var Tatter\Patches\Interfaces\MergerInterface
 	 */
 	protected $merger;
+
+	/**
+	 * The Differ
+	 *
+	 * @var SebastianBergmann\Diff\Differ
+	 */
+	protected $differ;
 
 	/**
 	 * Initialize the configuration and directories.
@@ -312,6 +321,42 @@ class Patches
 		}
 
 		return $files;
+	}
+
+	/**
+	 * Calculate the diff and percent for a file.
+	 *
+	 * @param string $file  Relative path to the file
+	 *
+	 * @return array [diff content, percent changed]
+	 */
+    public function diffFile(string $file): array
+    {
+    	if (is_null($this->differ))
+    	{
+			$this->differ = new Differ(new DiffOnlyOutputBuilder());
+		}
+
+		$file1 = $this->codex->workspace . 'legacy/' . $file;
+		$file2 = $this->codex->workspace . 'current/' . $file;
+
+		if (! is_file($file1) && ! is_file($file2))
+		{
+			return ['', 0];
+		}
+    	elseif (! is_file($file1))
+    	{
+    		return [file_get_contents($file2), 100];
+    	}
+    	elseif (! is_file($file2))
+    	{
+    		return [file_get_contents($file1), 100];
+    	}
+
+		$contents = file_get_contents($file2);
+		$diff     = $this->differ->diff(file_get_contents($file1), $contents);
+
+		return [$diff, round(strlen($diff) / 2 / strlen($contents) * 100, 1)];
 	}
 
 	/**
