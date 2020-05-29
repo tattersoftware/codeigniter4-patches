@@ -102,4 +102,19 @@ class LibraryTest extends \Tests\Support\MockProjectTestCase
 
 		$this->assertEquals($expected, $paths);
 	}
+
+	public function testDiffFileReturnsExpectedValue()
+	{
+		$patches = new Patches($this->config);
+		$patches->run();
+		$codex = $patches->getCodex();
+
+		$file = $codex->addedFiles[0];
+		file_put_contents($codex->workspace . 'legacy/' . $file, "0123456789\nabcdefghij");
+		file_put_contents($codex->workspace . 'current/' . $file, "0123456789aba\nabcdefghij\nxyz");
+
+		$expected = "-0123456789\n-abcdefghij\n+0123456789aba\n+abcdefghij\n+xyz\n";
+
+		$this->assertEquals($expected, $patches->diffFile($file));
+	}
 }

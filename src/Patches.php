@@ -328,35 +328,22 @@ class Patches
 	 *
 	 * @param string $file  Relative path to the file
 	 *
-	 * @return array [diff content, percent changed]
+	 * @return string  The diff
 	 */
-    public function diffFile(string $file): array
+    public function diffFile(string $file): string
     {
     	if (is_null($this->differ))
     	{
-			$this->differ = new Differ(new DiffOnlyOutputBuilder());
+			$this->differ = new Differ(new DiffOnlyOutputBuilder(''));
 		}
 
 		$file1 = $this->codex->workspace . 'legacy/' . $file;
 		$file2 = $this->codex->workspace . 'current/' . $file;
 
-		if (! is_file($file1) && ! is_file($file2))
-		{
-			return ['', 0];
-		}
-    	elseif (! is_file($file1))
-    	{
-    		return [file_get_contents($file2), 100];
-    	}
-    	elseif (! is_file($file2))
-    	{
-    		return [file_get_contents($file1), 100];
-    	}
+		$contents1 = is_file($file1) ? file_get_contents($file1) : '';
+		$contents2 = is_file($file2) ? file_get_contents($file2) : '';
 
-		$contents = file_get_contents($file2);
-		$diff     = $this->differ->diff(file_get_contents($file1), $contents);
-
-		return [$diff, round(strlen($diff) / 2 / strlen($contents) * 100, 1)];
+		return $this->differ->diff($contents1, $contents2);
 	}
 
 	/**
@@ -451,13 +438,16 @@ class Patches
 		// Update the array of legacy files to match the new filtered list
 		$this->codex->legacyFiles = array_diff($this->codex->legacyFiles, $unchangedFiles);
 
-		$s = $this->codex->changedFiles == 1 ? '' : 's';
+		$s = count($this->codex->changedFiles) == 1 ? '' : 's';
 		$this->status(count($this->codex->changedFiles) . " changed file{$s} detected");
+
+		$s = count($this->codex->addedFiles) == 1 ? '' : 's';
+		$this->status(count($this->codex->addedFiles) . " added file{$s} detected");
 
 		// Check for files that have been deleted
 		$this->codex->deletedFiles = array_diff($this->codex->legacyFiles, $this->codex->changedFiles);
 
-		$s = $this->codex->deletedFiles == 1 ? '' : 's';
+		$s = count($this->codex->deletedFiles) == 1 ? '' : 's';
 		$this->status(count($this->codex->deletedFiles) . " deleted file{$s} detected");
 
 		return $this;
@@ -485,8 +475,14 @@ class Patches
 			return false;
 		}
 		
-		$s = $this->codex->mergedFiles == 1 ? '' : 's';
+		$s = count($this->codex->mergedFiles) == 1 ? '' : 's';
 		$this->status(count($this->codex->mergedFiles) . " file{$s} merged");
+
+		$conflicts = count($this->codex->conflicts['changed'])
+			+ count($this->codex->conflicts['added'])
+			+ count($this->codex->conflicts['deleted']);
+		$s = $conflicts == 1 ? '' : 's';
+		$this->status($conflicts . " conflict{$s} detected");
 
 		// If events are allowed then trigger postpatch
 		if ($this->codex->config->allowEvents)
