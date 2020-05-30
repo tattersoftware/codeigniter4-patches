@@ -47,6 +47,13 @@ You can also disable unwanted aspects of the patching process (like Events). **P
 also auto-detect source files and use any available, but you can specify `ignoredSources` by
 their shortname (e.g. "Framework") to prevent using a source.
 
+### Repositories
+
+**Patches** works best alongside your project's repository management. It is highly recommended
+that you add the workspace to your **.gitignore** file (default: **writable/patches**) and
+that you include **composer.lock** in committed code. This way you can run patches against
+a dedicated branch without affecting the rest of your workflow.
+
 ## Usage
 
 **Patches** comes with a CLI Command to run patches and guide you through the process. After
