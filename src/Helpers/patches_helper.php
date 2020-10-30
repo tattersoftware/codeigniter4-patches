@@ -76,12 +76,12 @@ if (! function_exists('copy_directory_recursive'))
 	 * Copies a directory and all its contents to a destination directory
 	 * https://stackoverflow.com/a/2050909
 	 *
-	 * @param string $file1  Full path to the file
-	 * @param string $file2  Full path to the new file
+	 * @param string $dir1  Full path to the directory
+	 * @param string $dir2  Full path to the new directory
 	 *
 	 * @return bool  Success or failure
 	 */
-	function copy_directory_recursive($dir1, $dir2, $mode = 0755)
+	function copy_directory_recursive(string $dir1, string $dir2, $mode = 0755)
 	{
 		$handle = opendir($dir1);
 
@@ -106,6 +106,8 @@ if (! function_exists('copy_directory_recursive'))
 		}
 
 		closedir($handle);
+
+		return true;
 	}
 }
 

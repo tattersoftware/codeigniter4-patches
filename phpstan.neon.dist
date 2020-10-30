@@ -3,18 +3,17 @@ parameters:
 	level: 5
 	paths:
 		- src
-		- tests
+		# - tests
 	bootstrapFiles:
 		- vendor/codeigniter4/codeigniter4/system/Test/bootstrap.php
 	excludes_analyse:
 		- src/Config/Routes.php
 		- src/Views/*
 	ignoreErrors:
-		- '#Cannot access property [\$a-z_]+ on (array|object)#'
-		- '#Unsafe usage of new static\(\)*#'
 	universalObjectCratesClasses:
 		- CodeIgniter\Entity
 		- Faker\Generator
+		- Tatter\Patches\Codex
 	scanDirectories:
 		- vendor/codeigniter4/codeigniter4/system/Helpers
 	dynamicConstantNames:

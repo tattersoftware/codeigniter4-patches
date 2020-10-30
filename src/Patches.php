@@ -35,21 +35,21 @@ class Patches
 	/**
 	 * Instance of the update handler.
 	 *
-	 * @var Tatter\Patches\Interfaces\UpdaterInterface
+	 * @var UpdaterInterface
 	 */
 	protected $updater;
 
 	/**
 	 * Instance of the merger handler.
 	 *
-	 * @var Tatter\Patches\Interfaces\MergerInterface
+	 * @var MergerInterface
 	 */
 	protected $merger;
 
 	/**
 	 * The Differ
 	 *
-	 * @var SebastianBergmann\Diff\Differ
+	 * @var Differ|null
 	 */
 	protected $differ;
 
@@ -211,7 +211,7 @@ class Patches
 	 * Locate and load sources by their name.
 	 * Priority: App, other modules, Tatter\Patches
 	 *
-	 * @return array  $name => $instance
+	 * @return $this
 	 */
 	protected function gatherSources(): self
 	{
@@ -358,7 +358,7 @@ class Patches
 		// Copy the prepatch files and store the list
 		$this->codex->legacyFiles = $this->copyPaths($destination);
 
-		$s = $this->codex->legacyFiles == 1 ? '' : 's';
+		$s = count($this->codex->legacyFiles) === 1 ? '' : 's';
 		$this->status(count($this->codex->legacyFiles) . " legacy file{$s} copied to {$destination}");
 
 		// If events are allowed then trigger prepatch

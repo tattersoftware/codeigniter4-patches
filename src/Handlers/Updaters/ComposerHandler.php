@@ -13,8 +13,6 @@ class ComposerHandler extends BaseHandler implements UpdaterInterface
 	 * Call Composer programmatically to update all vendor files
 	 * https://stackoverflow.com/questions/17219436/run-composer-with-a-php-script-in-browser#25208897
 	 *
-	 * @param Codex $codex
-	 *
 	 * @throws UpdateException
 	 */
 	public function update()

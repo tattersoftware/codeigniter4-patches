@@ -33,13 +33,13 @@ class MockPatches extends Patches
 	public function update(): bool
 	{
 		// Force the MockUpdater handler
-		$tmpUpdater = $this->config->updater;
-		$this->config->updater = 'Tatter\Patches\Test\MockUpdater';
+		$tmpUpdater = $this->codex->config->updater;
+		$this->codex->config->updater = 'Tatter\Patches\Test\MockUpdater';
 
 		$result = parent::update();
 
 		// Restore the handler
-		$this->config->updater = $tmpUpdater;
+		$this->codex->config->updater = $tmpUpdater;
 
 		return $result;
 	}
@@ -52,13 +52,13 @@ class MockPatches extends Patches
 	public function merge(): bool
 	{
 		// Force the MockMerger handler
-		$tmpMerger = $this->config->updater;
-		$this->config->merger = 'Tatter\Patches\Test\MockMerger';
+		$tmpMerger = $this->codex->config->updater;
+		$this->codex->config->merger = 'Tatter\Patches\Test\MockMerger';
 
 		$result = parent::merge();
 
 		// Restore the handler
-		$this->config->merger = $tmpMerger;
+		$this->codex->config->merger = $tmpMerger;
 
 		return $result;
 	}
