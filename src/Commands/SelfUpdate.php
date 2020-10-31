@@ -31,7 +31,7 @@ class SelfUpdate extends BaseCommand
 		$codex   = $this->patches->getCodex();
 		$sources = $this->patches->getSources();
 
-		CLI::write('Using the following configuration:');
+		CLI::write('Using the following configuration:', 'light_cyan');
 		CLI::table([
 			['Updater',   $codex->config->updater],
 			['Merger',    $codex->config->merger],
@@ -91,7 +91,7 @@ class SelfUpdate extends BaseCommand
 			return CLI::prompt('Selection?', ['p', 'q']) === 'p';
 		}
 
-		CLI::write('What would you like to do:');
+		CLI::write('What would you like to do:', 'light_cyan');
 		CLI::write('(P)roceed with the merge');
 		CLI::write('(L)ist all files');
 		CLI::write('Show (C)hanged files (' . $counts['changed'] . ')');
@@ -150,7 +150,7 @@ class SelfUpdate extends BaseCommand
 			return true;
 		}
 
-		CLI::write('What would you like to do:');
+		CLI::write('What would you like to do:', 'light_cyan');
 		CLI::write('(L)ist conflict files');
 		CLI::write('(G)uided resolution');
 		CLI::write('(O)verwrite all files');
@@ -282,7 +282,7 @@ class SelfUpdate extends BaseCommand
 		$codex = $this->patches->getCodex();
 		$codex->save();
 
-		CLI::write('Workspace with codex and files:');
+		CLI::write('Workspace with codex and files:', 'light_cyan');
 		CLI::write($codex->workspace);
 
 		return $this;
