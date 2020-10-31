@@ -1,5 +1,6 @@
 {
 	"name": "tatter/patches",
+	"type": "library",
 	"description": "Module for updating CodeIgniter 4 projects",
 	"keywords": [
 		"codeigniter",
@@ -19,23 +20,14 @@
 			"role": "Developer"
 		}
 	],
-	"repositories": [
-		{
-			"type": "vcs",
-			"url": "https://github.com/codeigniter4/CodeIgniter4"
-		}
-	],
-	"minimum-stability": "dev",
-	"prefer-stable": true,
 	"require": {
-		"php" : ">=7.2",
+		"php": ">=7.2",
 		"composer/composer": "^2.0",
 		"sebastian/diff": "^3.0"
 	},
 	"require-dev": {
-		"phpunit/phpunit": "8.5.*",
-		"mikey179/vfsstream": "^1.6",
-		"codeigniter4/codeigniter4": "dev-develop"
+		"codeigniter4/codeigniter4": "dev-develop",
+		"tatter/tools": "^1.0"
 	},
 	"autoload": {
 		"psr-4": {
@@ -47,10 +39,17 @@
 			"Tests\\Support\\": "tests/_support"
 		}
 	},
+	"repositories": [
+		{
+			"type": "vcs",
+			"url": "https://github.com/codeigniter4/CodeIgniter4"
+		}
+	],
+	"minimum-stability": "dev",
+	"prefer-stable": true,
 	"scripts": {
-		"test": "phpunit",
-		"post-update-cmd": [
-			"composer dump-autoload"
-		]
+		"analyze": "phpstan analyze",
+		"style": "phpcs --standard=./vendor/codeigniter4/codeigniter4-standard/CodeIgniter4 tests/ src/",
+		"test": "phpunit"
 	}
 }

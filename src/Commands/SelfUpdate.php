@@ -14,7 +14,7 @@ class SelfUpdate extends BaseCommand
 	/**
 	 * The library instance
 	 *
-	 * @var Tatter\Patches\Patches
+	 * @var Patches
 	 */
 	public $patches;
 
@@ -103,11 +103,9 @@ class SelfUpdate extends BaseCommand
     	{
     		case 'p':
     			return true;
-    		break;
 
     		case 'q':
     			return false;
-    		break;
 
     		case 'l':
     			$this->showFiles($codex->changedFiles, 'Changed');
@@ -161,13 +159,9 @@ class SelfUpdate extends BaseCommand
 
     	switch (CLI::prompt('Selection?', ['l', 'g', 'o', 's', 'q']))
     	{
-    		case 'p':
-    			return true;
-    		break;
-
+    		case 'q':
     		case 's':
     			return false;
-    		break;
 
     		case 'l':
     			$this->showFiles($codex->conflicts['changed'], 'Changed');
@@ -188,7 +182,6 @@ class SelfUpdate extends BaseCommand
 				}
 
     			return true;
-    		break;
     	}
 
     	// If a non-returning item was select then run the menu again
@@ -198,7 +191,7 @@ class SelfUpdate extends BaseCommand
 	/**
 	 * Display and process the resolve menu
 	 *
-	 * @param array $files    Array of files to list
+	 * @param string $file    Path to the file
 	 * @param string $status  Changed/Added/Deleted
 	 *
 	 * @return bool  False to quit out of the whole process
@@ -219,16 +212,13 @@ class SelfUpdate extends BaseCommand
     	{
     		case 's':
     			return true;
-    		break;
 
     		case 'q':
     			return false;
-    		break;
 
     		case 'd':
     			CLI::write($this->patches->diffFile($file));
     			return $this->resolveMenu($file, $status);
-    		break;
 
     		case 'o':
 				$current = $codex->workspace . 'current/' . $file;
@@ -243,9 +233,7 @@ class SelfUpdate extends BaseCommand
 				{
 					copy_path($current, $project);
 				}
-
-				return true;
-    		break;
+			break;
     	}
 
 		return true;

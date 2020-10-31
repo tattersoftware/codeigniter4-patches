@@ -2,6 +2,7 @@
 
 use CodeIgniter\Config\BaseConfig;
 use JsonSerializable;
+use Tatter\Patches\Config\Patches;
 
 /**
  * Class Codex
@@ -13,7 +14,7 @@ class Codex implements JsonSerializable
 	/**
 	 * Config file to use.
 	 *
-	 * @var Tatter\Patches\Config\Patches
+	 * @var Patches
 	 */
 	public $config;
 
@@ -87,9 +88,9 @@ class Codex implements JsonSerializable
 	/**
 	 * Initialize the configuration.
 	 *
-	 * @param BaseConfig $config
+	 * @param Patches $config
 	 */
-	public function __construct(BaseConfig $config)
+	public function __construct(Patches $config)
 	{
 		$this->config = $config;
 	}

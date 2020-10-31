@@ -31,6 +31,7 @@ class MockProjectTestCase extends CIUnitTestCase
 		$this->config->rootPath = self::$project;
 		$this->config->updater  = 'Tatter\Patches\Test\MockUpdater';
 		$this->config->ignoredSources[] = 'FrameworkTest';
+		$this->config->ignoredSources[] = 'Tools';
 	}
 
 	public function tearDown(): void
