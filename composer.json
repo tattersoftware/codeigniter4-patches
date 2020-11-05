@@ -22,12 +22,13 @@
 	],
 	"require": {
 		"php": ">=7.2",
-		"composer/composer": "^2.0",
-		"sebastian/diff": "^3.0"
+		"composer/composer": "^1.0 || ^2.0",
+		"sebastian/diff": "^3.0 || ^4.0"
 	},
 	"require-dev": {
 		"codeigniter4/codeigniter4": "dev-develop",
-		"tatter/tools": "^1.0"
+		"phpunit/phpunit": "^9.0",
+		"tatter/tools": "^1.1"
 	},
 	"autoload": {
 		"psr-4": {

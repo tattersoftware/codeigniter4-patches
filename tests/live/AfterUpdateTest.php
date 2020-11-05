@@ -85,6 +85,6 @@ class AfterUpdateTest extends \Tests\Support\MockProjectTestCase
 
 		$file = str_replace($this->source, 'app/ThirdParty/TestSource/', $this->updater->deletedFiles[0]);
 
-		$this->assertFileNotExists($this->patches->getWorkspace() . 'current/' . $file);
+		$this->assertFileDoesNotExist($this->patches->getWorkspace() . 'current/' . $file);
 	}
 }

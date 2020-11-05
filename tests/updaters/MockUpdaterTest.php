@@ -55,7 +55,7 @@ class MockUpdaterTest extends \Tests\Support\MockProjectTestCase
 		$contents = file_get_contents($this->handler->addedFiles[0]);
 		$this->assertTrue(ctype_xdigit($contents));
 
-		$this->assertFileNotExists($this->handler->deletedFiles[0]);
+		$this->assertFileDoesNotExist($this->handler->deletedFiles[0]);
 
 		$this->assertFileExists($this->handler->changedFiles[0]);
 		$contents = file_get_contents($this->handler->changedFiles[0]);
