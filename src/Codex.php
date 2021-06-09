@@ -8,6 +8,8 @@ use Tatter\Patches\Config\Patches;
  * Class Codex
  *
  * Portable record of per-patch settings and outcomes.
+ *
+ * @deprecated
  */
 class Codex implements JsonSerializable
 {

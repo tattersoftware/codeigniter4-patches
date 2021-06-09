@@ -1,3 +1,8 @@
+# DEPRECATED
+
+This version of the library (as a `spark` command and PHP module) is deprecated. See the
+release notes for `v1.2` for more details.
+
 # Tatter\Patches
 Module for updating CodeIgniter 4 projects
 

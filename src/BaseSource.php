@@ -6,6 +6,8 @@ use CodeIgniter\Events\Events;
  * Class BaseSource
  *
  * Common functions for patch sources.
+ *
+ * @deprecated
  */
 class BaseSource
 {
