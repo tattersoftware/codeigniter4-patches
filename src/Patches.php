@@ -15,6 +15,8 @@ use Tatter\Patches\Interfaces\UpdaterInterface;
  * Class Patches
  *
  * Library to implement patch sources for project updates.
+ *
+ * @deprecated
  */
 class Patches
 {

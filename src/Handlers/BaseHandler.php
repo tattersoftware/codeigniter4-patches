@@ -2,6 +2,9 @@
 
 use Tatter\Patches\Codex;
 
+/**
+ * @deprecated
+ */
 class BaseHandler
 {
 	/**

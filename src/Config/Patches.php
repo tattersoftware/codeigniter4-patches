@@ -2,6 +2,9 @@
 
 use CodeIgniter\Config\BaseConfig;
 
+/**
+ * @deprecated
+ */
 class Patches extends BaseConfig
 {
 	/**
