@@ -137,7 +137,7 @@ git clean -fd
 
 # If a current version was requested then change vendor first
 if [ "$CURRENT_VERSION" ]; then
-	composer require "$PACKAGE" "$CURRENT_VERSION"
+	composer require --no-scripts "$PACKAGE" "$CURRENT_VERSION"
 	git restore composer.*
 fi
 
@@ -153,10 +153,10 @@ git commit -m "Stage framework" > /dev/null
 
 # Check for a specific requested version
 if [ "$TARGET_VERSION" ]; then
-	composer require "$PACKAGE" "$TARGET_VERSION"
+	composer require --no-scripts "$PACKAGE" "$TARGET_VERSION"
 # Otherwise get the latest
 else
-	composer update "$PACKAGE"
+	composer update --no-scripts "$PACKAGE"
 fi
 
 # Wipe out the current versions and copy in the new
@@ -177,7 +177,7 @@ rm composer.*
 git switch -c tatter/patches "$BASE"
 
 # Restore the original state of vendor/
-composer install > /dev/null
+composer install --no-scripts > /dev/null
 
 # Attempt the merge
 set +e
