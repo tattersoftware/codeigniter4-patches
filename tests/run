@@ -37,6 +37,8 @@ set_up()
 
 	# Initialize git
 	git init -b develop
+	git config --local user.email "action@github.com"
+	git config --local user.name "GitHub Action"
 	git add . && git commit -m "Initial commit"
 }
 
@@ -58,7 +60,7 @@ assert()
 	MESSAGE=$@
 
 	echo "FAILED: $MESSAGE"
-	exit $CODE
+	exit 1
 }
 
 get_hash()
@@ -66,12 +68,10 @@ get_hash()
 	md5sum "$1" | awk '{print $1}'
 }
 
-# Begin testing
-set +e
-
 # Verify the tests
 assert "-d $TESTS" "Unable to locate tests"
 
+# Begin testing
 for FILE in "$TESTS"/*; do
 
 	NAME=`basename "$FILE"`
@@ -80,7 +80,9 @@ for FILE in "$TESTS"/*; do
 	set_up > /dev/null 2>&1
 
 	# Execute the test
+	set +e
 	. $FILE
+	set -e
 
 	RESULT=$?
 	if [ $RESULT -ne 0 ]; then
@@ -89,6 +91,7 @@ for FILE in "$TESTS"/*; do
 	fi
 
 	echo "$NAME passed."
+	echo ""
 done
 
 echo "All tests passed!"
