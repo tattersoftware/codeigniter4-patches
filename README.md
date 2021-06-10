@@ -1,12 +1,12 @@
 # Tatter\Patches
 Automated project updates for CodeIgniter 4
 
-[![](https://github.com/tattersoftware/codeigniter4-patches/workflows/PHP%20Unit%20Tests/badge.svg)](https://github.com/tattersoftware/codeigniter4-patches/actions?query=workflow%3A%22PHP+Unit+Tests%22)
+[![](https://github.com/tattersoftware/codeigniter4-patches/workflows/Tests/badge.svg)](https://github.com/tattersoftware/codeigniter4-patches/actions/workflows/test.yml)
 
 ## Quick Start
 
 1. Install with Composer: `> composer require --dev tatter/patches`
-2. Use the command to update: `> php spark selfupdate`
+2. Use the command to update: `> vendor/bin/patch`
 
 ## Description
 
