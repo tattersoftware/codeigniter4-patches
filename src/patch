@@ -117,6 +117,10 @@ for BRANCH in "tatter/scratch" "tatter/patches"; do
 done
 
 # Display environment info
+echo "************************************"
+echo "*          CONFIGURATION           *"
+echo "************************************"
+echo ""
 echo "Scripts Directory: $SCRIPTS"
 echo "Project Directory: $ROOT"
 echo "Target Version:    $TARGET_VERSION"
@@ -124,10 +128,15 @@ echo "Current Version:   $SOURCE_VERSION"
 echo "Source Package:    $PACKAGE"
 echo "Base Branch:       $BASE"
 echo "Selected Items:    $ITEMS"
+echo ""
 
 # From here on everything is destructive (but reversible) so we want hard stops
 set -e
 
+echo "************************************"
+echo "*             STAGING              *"
+echo "************************************"
+echo ""
 # Create a blank branch to work on
 git switch --orphan tatter/scratch
 
@@ -137,7 +146,7 @@ git clean -fd
 
 # If a current version was requested then change vendor first
 if [ "$CURRENT_VERSION" ]; then
-	composer require "$PACKAGE" "$CURRENT_VERSION"
+	composer require --no-scripts "$PACKAGE" "$CURRENT_VERSION"
 	git restore composer.*
 fi
 
@@ -153,10 +162,10 @@ git commit -m "Stage framework" > /dev/null
 
 # Check for a specific requested version
 if [ "$TARGET_VERSION" ]; then
-	composer require "$PACKAGE" "$TARGET_VERSION"
+	composer require --no-scripts "$PACKAGE" "$TARGET_VERSION"
 # Otherwise get the latest
 else
-	composer update "$PACKAGE"
+	composer update --no-scripts "$PACKAGE"
 fi
 
 # Wipe out the current versions and copy in the new
@@ -177,14 +186,23 @@ rm composer.*
 git switch -c tatter/patches "$BASE"
 
 # Restore the original state of vendor/
-composer install > /dev/null
+composer install --no-scripts > /dev/null
+
+echo "************************************"
+echo "*              MERGING             *"
+echo "************************************"
+echo ""
 
 # Attempt the merge
 set +e
 git cherry-pick tatter/scratch
 
 if [ $? -eq 0 ]; then
-	echo "Patch successful! Changes available on branch tatter/patches."
+	echo "************************************"
+	echo "*              SUCCESS             *"
+	echo "************************************"
+	echo ""
+	echo "Patch successful! Updated files are available on branch tatter/patches."
 	git branch -D tatter/scratch
 	exit 0
 fi
@@ -192,6 +210,10 @@ fi
 git status
 
 # Conflict: explain and exit
+echo ""
+echo "************************************"
+echo "*            RESOLUTION            *"
+echo "************************************"
 echo ""
 echo "Conflicts detected during patch! Follow the git instructions for resolution."
 echo "Once resolution is complete your changes will be available on branch tatter/patches"
