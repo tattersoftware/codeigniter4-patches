@@ -24,7 +24,7 @@
 		"php": "^7.3 || ^8.0"
 	},
 	"bin": [
-		"src/patches"
+		"src/patch"
 	],
 	"scripts": {
 		"test": "tests/run"
