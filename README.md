@@ -23,7 +23,8 @@ command makes the following assumptions (and will fail if they are not met):
 * You project is in an existing Git repository
 * The CodeIgniter 4 framework is installed via Composer in your **vendor/** directory
 * The current branch is "clean" (no uncommitted changes or unstaged files)
-* Your project files are in their standard locations (**app/**, **public/**, **writable/**, etc)
+* Your project files are in their standard locations (**app/**, **public/**, **env**, **spark**)
+* You have no ignored files in **app/** or **public/** that the patch process would disrupt
 
 ## Installation
 
@@ -189,6 +190,12 @@ If you are unsure whether **Patches** is compatible with your environment, it is
 you run the test cases first. Clone or download the repo and launch the tests with their `run` command:
 
 	./tests/run
+
+### Clean Up
+
+* It is **always** safe to delete `tatter/scratch` - this branch has nothing relevant to your project.
+* It is **always** safe to delete `tatter/patches`, but if you have not committed and merged the changes then you will need to start the patch process over.
+* Should you decide not to use **Patches** anymore just remove the Composer package or delete the script - that's all!
 
 ### Recovery
 
