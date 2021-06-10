@@ -126,7 +126,7 @@ echo "Base Branch:       $BASE"
 echo "Selected Items:    $ITEMS"
 
 # From here on everything is destructive (but reversible) so we want hard stops
-set -ex
+set -e
 
 # Create a blank branch to work on
 git switch --orphan tatter/scratch
@@ -176,7 +176,11 @@ rm composer.*
 # Create the new branch from base
 git switch -c tatter/patches "$BASE"
 
+# Restore the original state of vendor/
+composer install > /dev/null
+
 # Attempt the merge
+set +e
 git cherry-pick tatter/scratch
 
 if [ $? -eq 0 ]; then
@@ -188,8 +192,10 @@ fi
 git status
 
 # Conflict: explain and exit
+echo ""
 echo "Conflicts detected during patch! Follow the git instructions for resolution."
 echo "Once resolution is complete your changes will be available on branch tatter/patches"
 echo "and you should remove the old working branch at tatter/scratch."
+echo ""
 
 exit 1
