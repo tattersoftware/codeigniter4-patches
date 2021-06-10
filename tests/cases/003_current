@@ -1,0 +1,29 @@
+#!/bin/sh
+
+##
+# Tatter\Patches
+# https://github.com/tattersoftware/codeigniter4-patches
+#
+# Current Test Case
+# Tests using an alternate current version.
+##
+
+echo "************************************"
+echo "* WITH CURRENT VERSION             *"
+echo "************************************"
+
+# Pretend the file did not exist
+CREATED="app/Config/Generators.php"
+rm "$CREATED"
+git add . && git commit -m "Degenerate" > /dev/null 2>&1
+
+sh "$SCRIPT" -c 4.0.4 > /dev/null 2>&1
+
+assert "$? -ne 0" "Script should have failed due to conflit!"
+assert "-f $CREATED" "File does not exist: $CREATED!"
+
+if [ -z "`git status --porcelain`" ]; then
+	assert true "Expected status issues!"
+fi
+
+return 0

@@ -1,0 +1,37 @@
+#!/bin/sh
+
+##
+# Tatter\Patches
+# https://github.com/tattersoftware/codeigniter4-patches
+#
+# Testing Test Case
+# Tests that the test files are working as expected.
+##
+
+echo "************************************"
+echo "* TEST CASE TESTING                *"
+echo "************************************"
+
+# Test the assert function
+RESULT=`assert "-f bananas" "Expected"`
+if [ "$RESULT" != "FAILED: Expected" ]; then
+	assert "" "Assert did not work!"
+fi
+
+set -e
+
+# Test the hash function
+touch "$SCRATCH/testing"
+RESULT=`get_hash "$SCRATCH/testing"`
+assert "$RESULT = d41d8cd98f00b204e9800998ecf8427e" "get_hash failed!"
+rm -f "$SCRATCH/testing"
+
+# Make sure the script was located
+assert "-x $SCRIPT" "Patch script not available!"
+
+# Verify AppStarter was created
+assert "-f app/Config/App.php" "AppStarter installation failed!"
+
+set +e
+
+return 0

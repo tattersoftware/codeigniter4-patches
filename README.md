@@ -1,10 +1,5 @@
-# DEPRECATED
-
-This version of the library (as a `spark` command and PHP module) is deprecated. See the
-release notes for `v1.2` for more details.
-
 # Tatter\Patches
-Module for updating CodeIgniter 4 projects
+Automated project updates for CodeIgniter 4
 
 [![](https://github.com/tattersoftware/codeigniter4-patches/workflows/PHP%20Unit%20Tests/badge.svg)](https://github.com/tattersoftware/codeigniter4-patches/actions?query=workflow%3A%22PHP+Unit+Tests%22)
 
@@ -15,18 +10,20 @@ Module for updating CodeIgniter 4 projects
 
 ## Description
 
-**Patches** helps keep your CodeIgniter 4 projects up-to-date when there are framework or
-other upstream changes that affect your project source. Use one easy command to patch your
-development instance and update dependencies all at once.
+**Patches** helps keep your CodeIgniter 4 projects up-to-date when there are framework changes
+that affect your project source. Use one easy command to patch your development instance and
+stage any conflicts for easy resolution.
 
-### Process
+## Requirements
 
-The library will initialize and locate any source files in **{namespace}/Patches**. Legacy
-files identified by the source files are copied into the workspace prior to running the update.
-After running updates (e.g. the equivalent of `composer update`) any files that changed are
-compared with their equivalent version in your project root. Any eligible files are automatically
-merged and then you are guided through conflict resolution in cases where a file could not be
-merged automatically.
+**Patches** is built on top of [Git](https://git-scm.com) and [Composer](https://getcomposer.org),
+so requires both of those be installed an accessible in your PATH. Additionally, the `patch`
+command makes the following assumptions (and will fail if they are not met):
+
+* You project is in an existing Git repository
+* The CodeIgniter 4 framework is installed via Composer in your **vendor/** directory
+* The current branch is "clean" (no uncommitted changes or unstaged files)
+* Your project files are in their standard locations (**app/**, **public/**, **writable/**, etc)
 
 ## Installation
 
@@ -34,200 +31,202 @@ Install easily via Composer to take advantage of CodeIgniter 4's autoloading cap
 and always be up-to-date:
 * `> composer require --dev tatter/patches`
 
-Or, install manually by downloading the source files and adding the directory to
-`app/Config/Autoload.php`.
+> Note: While **Patches** can be run in a production environment it is strongly recommended
+  that you install it in development (using `--dev`) and then deploy the repo changes to production.
 
-**Note:** While **Patches** can be run in a production environment it is strongly recommended
-that you install it in development (using `--dev`) and then apply changes manually to production.
-
-## Configuration
-
-The library's default behavior can be altered by extending its config file. Copy
-**bin/Patches.php** to **app/Config/** and follow the instructions
-in the comments. If no config file is found in **app/Config** the library will use its own.
-
-By default **Patches** will use its own built-in handlers for updating (Composer) and merging
-(Copy). You can change to another bundled handler (or write your own) using the config values.
-You can also disable unwanted aspects of the patching process (like Events). **Patches** will
-also auto-detect source files and use any available, but you can specify `ignoredSources` by
-their shortname (e.g. "Framework") to prevent using a source.
-
-### Repositories
-
-**Patches** works best alongside your project's repository management. It is highly recommended
-that you add the workspace to your **.gitignore** file (default: **writable/patches**) and
-that you include **composer.lock** in committed code. This way you can run patches against
-a dedicated branch without affecting the rest of your workflow.
+You may also download the script and add it to your favorite projects.
 
 ## Usage
 
-**Patches** comes with a CLI Command to run patches and guide you through the process. After
-the module is installed and configured, run "selfupdate" from the command line:
+**Patches** comes with a single script, `patch`, which Composer will treat as a binary and
+deploy to your **vendor/bin/** folder. Simply run the command to kick off the patch process:
 
-	php spark selfupdate
+	./vendor/bin/patch
 
-Follow the prompts to complete the patch process. Copies of the files are left in the workspace
-(default: **ROOTPATH/writable/patches/{datetime}**) along with **codex.json**, a copy of the run log.
+### Arguments
 
-## Example
+Most of the time the simple script is what you will want, but `patch` takes a few arguments
+to alter the behavior of the patch process. Arguments that take a "commit-ish" can use anything
+Git recognizes (branch, hash, tag, reference, revision, etc).
 
-Below is a guided example of the patch process. This shows taking [CodeIgniter Playground](https://github.com/codeigniter4projects/playground)
-from an earlier release of the framework up to version `4.0.3`.
+#### Help (-h)
 
-> Add Patches to the existing project in a development setting
+Displays the latest command help:
 
-```
-> composer require --dev tatter/patches
-```
-	
-> All defaults are fine so kick off the patch process, which will begin with an overview of the configuration
+```shell
+Usage: ./patch [-c <current version>] [-v <target version>]
 
-```
-> php spark selfupdate
+Patches an existing CodeIgniter 4 project repo to a different version of the framework.
 
-CodeIgniter CLI Tool - Version 4.0.0-rc4 - Server-Time: 2020-05-27 19:23:15pm
-
-Beginning patch process
-Detected sources: Framework
-Using the following configuration:
-+-----------+--------------------------------------------------+
-| Updater   | Tatter\Patches\Handlers\Updaters\ComposerHandler |
-| Merger    | Tatter\Patches\Handlers\Mergers\CopyHandler      |
-| Base Path | /var/www/igniter.be/patches/writable/patches     |
-| Project   | /var/www/igniter.be/patches/                     |
-| Deletes?  | Allowed                                          |
-| Events?   | Allowed                                          |
-| Sources   | Framework                                        |
-| Ignored   | None                                             |
-+-----------+--------------------------------------------------+
+Options:
+  -h             Help. Show this help message and exit
+  -c commit-ish  Alternate version to consider "current" (rarely needed).
+  -v commit-ish  Version to use for patching. Defaults to the latest.
 ```
 
-> The prepatch process will copy existing source files and run the update
+#### Version (-v <commit-ish>)
 
-```
-66 legacy files copied to /var/www/igniter.be/patches/writable/patches/2020-05-29-192315/legacy/
+Manually sets the version to patch to. This is useful if you need to stop at a specific
+release, or if your project is pointed at the `develop` branch and you do not want certain
+commits. Examples:
 
-Loading composer repositories with package information
-Updating dependencies (including require-dev)         
-Package operations: 0 installs, 1 update, 0 removals
-  - Updating codeigniter4/framework (v4.0.0-rc4 => v4.0.3):  Checking out 6d019e5354
-Writing lock file
-Generating autoload files
-```
+* Patch the current installed repo to a specific version.
+	./vendor/bin/patch -v 4.1.2
 
-> After the files are updated Patches analyzes changes and presents a menu based on your project's differences
+* Patch up to a specific commit.
 
-```
-7 changed files detected
-0 added files detected
-0 deleted files detected
+	./vendor/bin/patch -v dev-develop#0cff5488676f36f9e08874fdeea301222b6971a2
 
-What would you like to do:
-(P)roceed with the merge
-(L)ist all files
-Show (C)hanged files (7)
-Show (A)dded files (0)
-Show (D)eleted files (0)
-(Q)uit
-Selection? [p, l, c, a, d, q]:
-```
+#### Current (-c <commit-ish>)
 
-> You can view which files were affected by typing "l" (L)
+Ignores the current installed version of the framework in favor of the specified one. This
+is unlikely to be needed in most cases, but can be helpful for example with new installations
+or if you updated with Composer but forgot to run patches first. Example:
 
-```
-+---------------------------------+---------+------+
-| File                            | Status  | Diff |
-+---------------------------------+---------+------+
-| app/Config/Autoload.php         | Changed | 5    |
-| app/Config/Boot/development.php | Changed | 3    |
-| app/Config/Boot/production.php  | Changed | 3    |
-| app/Config/Boot/testing.php     | Changed | 3    |
-| app/Config/Events.php           | Changed | 13   |
-| app/Config/Exceptions.php       | Changed | 6    |
-| app/Config/Services.php         | Changed | 3    |
-+---------------------------------+---------+------+
+* Assume the repo is in an older state and patch.
 
-No added files
-No deleted files
+## How it Works
+
+**Patches** is a shell script that calls `git` and `composer`. When called it will simulate
+an upgrade from your current version of the framework to the latest or specified version.
+The simulation assumes no files were modified in your project, which is very likely not the
+case, so the staged simulation is then compared as a three-way merge against your current
+project root. **Patches** works in a dedicated branch (`tatter/scratch`) so it will never
+modify your project directly. Patched files are all staged on `tatter/patches` so you can
+review them before merging or pushing to remote. Consider the following examples.
+
+### Added Files
+
+**CodeIgniter** decides it is time for a `Widget` component, which includes **app/Config/Widget.php**
+for the configuration. Your project is running version `4.1.2` but wants to update to `4.2.0` to
+use this new component. When **Patches** simulates the update between these versions `git` will
+notice the new file:
+
+```shell
+A	app/Config/Widget.php
 ```
 
-> If everything looks correct, typing "p" will proceed with merge
+When the final stage of the patch is run this new file will be merged into your project.
 
-```
-Selection? [p, l, c, a, d, q]: p
-5 files merged
-2 conflicts detected
-```
+### Changed Files
 
-> If there were conflicts then an additional menu will prompt for conflict resolution
+In addition to the config file above, `Widget` also comes with a great new `WidgetFilter`. As with
+all `Filters` it must be aliased in your **app/Config/Filters.php** file before it can be used.
+The framework already took care of this for new projects:
 
-```
-2 conflicts detected
-What would you like to do:
-(L)ist conflict files
-(G)uided resolution
-(O)verwrite all files
-(S)kip all files
-(Q)uit
-```
-
-> In this case Playground has a few config files with trivial modifications
-
-```
-Selection? [l, g, o, s, q]: l
-+-------------------------+---------+------+
-| File                    | Status  | Diff |
-+-------------------------+---------+------+
-| app/Config/Autoload.php | Changed | 5    |
-| app/Config/Services.php | Changed | 3    |
-+-------------------------+---------+------+
-No added files
-No deleted files
+```php
+class Filters extends BaseConfig
+{
+    /**
+     * Configures aliases for Filter classes to
+     * make reading things nicer and simpler.
+     *
+     * @var array
+     */
+    public $aliases = [
+        'csrf'     => CSRF::class,
+        'toolbar'  => DebugToolbar::class,
+        'honeypot' => Honeypot::class,
+        'widget'   => WidgetFilter::class,
+    ];
 ```
 
-> We will use the guided resolution to view each diff then overwrite the files
+When the final stage of the patch is run `git` will examine your existing file at **app/Config/Filters.php**
+and perform its signature [three-way merge](https://en.wikipedia.org/wiki/Merge_(version_control)#Recursive_three-way_merge)
+(technically, this is done with a `cherry-pick`). This means if your version is unchanged or if it has
+been modified in a compatible way then **Patches** it will apply the edits for you without intervention.
 
-```
-Selection? [l, g, o, s, q]: g
+### Conflicts
 
-This file was changed but your copy does not match the original.
-app/Config/Services.php
-(D)isplay diff
-(O)verwrite
-(S)kip
-(Q)uit
-Selection? [d, o, s, q]: d
--require_once SYSTEMPATH . 'Config/Services.php';
--
+Compatible changes are great, but say you have a weird layout fetish (no judgment) and the
+**app/Config/Filters.php** file in your project now looks like this:
 
-Selection? [d, o, s, q]: o
+```php
+class Filters extends BaseConfig
+{
+    public $aliases = ['csrf' => CSRF::class,'toolbar' => DebugToolbar::class,'honeypot' => Honeypot::class];
 ```
 
-> Upon completion the path to the workspace will be displayed so you can review what was accomplished
+You likely moral corruption aside, `git` will not know how to handle merging the new `WidgetFilter`
+and you now have a conflict. **Patches** will clean up and leave your repo in the conflict state
+so you can proceed with your favorite conflict resolution. Open **app/Config/Filters.php** in
+your favorite text editor to find the conflict:
 
+```php
+class Filters extends BaseConfig
+{
+<<<<<<< HEAD
+    public $aliases = ['csrf' => CSRF::class,'toolbar' => DebugToolbar::class,'honeypot' => Honeypot::class];
+=======
+    /**
+     * Configures aliases for Filter classes to
+     * make reading things nicer and simpler.
+     *
+     * @var array
+     */
+    public $aliases = [
+        'csrf'     => CSRF::class,
+        'toolbar'  => DebugToolbar::class,
+        'honeypot' => Honeypot::class,
+        'widget'   => WidgetFilter::class,
+    ];
+>>>>>>> tatter/scratch
 ```
-Workspace with codex and files:
-/var/www/igniter.be/patches/writable/patches/2020-05-29-192315/
+
+Once you have resolved all the conflicts you can finish the cherry-pick. For example in this case
+you would update the file and run the following commands:
+
+```shell
+git add app/Config/Filters.php
+git cherry-pick --continue
 ```
 
-> If your code is tracked you can easily see what changes were made during the patch
+## Troubleshooting
 
+### Compatibility
+
+If you are unsure whether **Patches** is compatible with your environment, it is recommended that
+you run the test cases first. Clone or download the repo and launch the tests with their `run` command:
+
+	./tests/run
+
+### Recovery
+
+**Patches** is very conservative and takes many precautions not to touch any of your project files.
+If you are relatively new to Git and you get into a merge conflict that becomes a mess, the first
+thing to do: *don't panic*! Your files are safe and your repo is intact and the only thing that can
+compromise that is typing in a bunch of commands you do not understand from the internet.
+
+The first thing to know is that **Patches** works with two dedicated branches: `tatter/scratch` is
+where it stages all the files, and `tatter/patches` is where it attempts the merge. If you are stuck
+make sure you know which branch you are on using `git branch` - likely your project uses one of the
+typical "main" branches: `develop`, `main`, or `master`.
+
+Next thing to be aware of, the final merge stage that could induce conflict is actually handled by
+a `cherry-pick`. This is a technical Git process for isolating a single commit and applying it to
+another branch. if you are mid-cherry-pick then `git status` should display the current state, as well
+as any conflicting files and some hints for how to proceed:
+
+```shell
+git status
+On branch tatter/patches
+You are currently cherry-picking commit a8b4361.
+  (all conflicts fixed: run "git cherry-pick --continue")
+  (use "git cherry-pick --skip" to skip this patch)
+  (use "git cherry-pick --abort" to cancel the cherry-pick operation)
 ```
-> git status
-On branch patches
-Changes not staged for commit:
-  (use "git add <file>..." to update what will be committed)
-  (use "git checkout -- <file>..." to discard changes in working directory)
 
-	modified:   app/Config/Boot/development.php
-	modified:   app/Config/Boot/production.php
-	modified:   app/Config/Boot/testing.php
-	modified:   app/Config/Events.php
-	modified:   app/Config/Exceptions.php
-	modified:   app/Config/Services.php
+As hinted above, you should be able to abort the entire process and get back to your unaltered
+project state any time you like with the following commands (swap `develop` for your main branch name):
+* `git cherry-pick --abort`
+* `git switch develop`
 
-no changes added to commit (use "git add" and/or "git commit -a")
+### Support
 
-> git diff HEAD
-...
-```
+Still need help?
+
+* Visit the [CodeIgniter Forums](https://forum.codeigniter.com/) to ask for help.
+* Click the "Sponsor" button on [the Patches repo](https://github.com/tattersoftware/codeigniter4-patches) for premium support options
+
+**GitHub Issues are for Bug Reports and Feature Requests only. Issues opened for support will be
+closed and their authors browbeaten.**

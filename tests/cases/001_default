@@ -1,0 +1,33 @@
+#!/bin/sh
+
+##
+# Tatter\Patches
+# https://github.com/tattersoftware/codeigniter4-patches
+#
+# Default Test Case
+# Tests default script behavior without parameters.
+##
+
+echo "************************************"
+echo "* DEFAULT (NO PARAMETERS)          *"
+echo "************************************"
+
+CREATED="app/Config/Cookie.php"
+assert "! -f $CREATED" "File should not exist: $CREATED!"
+
+CHANGED="app/Config/App.php"
+BEFORE=`get_hash $CHANGED`
+
+sh "$SCRIPT" > /dev/null 2>&1
+
+assert "$? -eq 0" "Script failed to execute!"
+assert "-f $CREATED" "File does not exist: $CREATED!"
+
+AFTER=`get_hash $CHANGED`
+assert "$BEFORE != $AFTER" "File did not change: $CHANGED!"
+
+if [ "`git status --porcelain`" ]; then
+	assert true "Unresolved status issues!"
+fi
+
+return 0

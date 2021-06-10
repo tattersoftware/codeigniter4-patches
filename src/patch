@@ -1,0 +1,195 @@
+#!/bin/sh
+
+##
+# Tatter\Patches
+# https://github.com/tattersoftware/codeigniter4-patches
+#
+# Patches an existing CodeIgniter 4 project repo to a
+# different version of the framework.
+##
+
+show_help()
+{
+	cat >&2 <<EOT
+
+Usage: ./patch [-c <current version>] [-v <target version>]
+
+Patches an existing CodeIgniter 4 project repo to a different version of the framework.
+
+Options:
+  -h             Help. Show this help message and exit
+  -c commit-ish  Alternate version to consider "current" (rarely needed).
+  -v commit-ish  Version to use for patching. Defaults to the latest.
+
+Examples:
+  Patch the current installed repo up to the latest available.
+    ${0}:
+  Patch the current installed repo to a specific version.
+    ${0} -v 4.1.2
+  Assume the repo is in an older state and patch to a specific commit.
+    ${0} -c 4.0.4 -v dev-develop#0cff5488676f36f9e08874fdeea301222b6971a2
+
+EOT
+}
+
+CURRENT_VERSION=""
+TARGET_VERSION=""
+
+while getopts "hv:c:" OPT; do
+	case ${OPT} in
+		h)	## -h help
+			show_help
+			exit 0
+			;;
+		c)	## -c <current version>
+			CURRENT_VERSION=${OPTARG}
+			;;
+		v)	## -c <target version>
+			TARGET_VERSION=${OPTARG}
+			;;
+	esac
+done
+
+ROOT=`pwd`
+SCRIPTS=`dirname "$0"`
+ITEMS="app/ env  public/ spark  writable/"
+
+# TODO: Parse missing current version from vendor/ or composer.lock or composer.json
+# TODO: Fetch missing target version from GitHub API or cURL endpoint
+
+# Error handling
+try()
+{
+	CODE=$1
+	if [ $CODE -eq 0 ]; then
+		return 0
+	fi
+
+	# Get the message from the remaining arguments
+	shift;
+	MESSAGE=$@
+
+	echo "ERROR $CODE: $MESSAGE"
+	exit $CODE
+}
+
+# Verify executables
+git --version
+try $? "Git must be installed."
+
+composer --version
+try $? "Composer must be installed."
+
+# Make sure this is a repository
+if [ ! -d "$ROOT/.git/" ]; then
+	try 1 "$ROOT is not a valid git repository."
+fi
+
+# Use the current branch as the base
+BASE=`git rev-parse --abbrev-ref HEAD`
+
+# Make sure the current branch is clean
+if [ "`git status --porcelain`" ]; then
+	try 1 "You have unresolved issues in the current branch ($BASE). Please resolve before patching."
+fi
+
+# Match a vendor path
+if [ -d "$ROOT/vendor/codeigniter4/framework" ]; then
+	PACKAGE="codeigniter4/framework"
+elif [ -d "$ROOT/vendor/codeigniter4/codeigniter4" ]; then
+	PACKAGE="codeigniter4/codeigniter4"
+else
+	try 1 "Unable to locate a valid vendor path."
+fi
+
+# Check for conflicting branches
+for BRANCH in "tatter/scratch" "tatter/patches"; do
+	TEST=`git rev-parse --verify --quiet $BRANCH`
+	if [ $? -eq 0 ]; then
+		# Make sure it is safe to delete
+		if [ "`git log HEAD..$BRANCH`" ]; then
+			try 1 "Unmerged commits on $BRANCH"
+		fi
+
+		git branch -d "$BRANCH"
+		try $? "Unable to delete branch $BRANCH"
+	fi
+done
+
+# Display environment info
+echo "Scripts Directory: $SCRIPTS"
+echo "Project Directory: $ROOT"
+echo "Target Version:    $TARGET_VERSION"
+echo "Current Version:   $SOURCE_VERSION"
+echo "Source Package:    $PACKAGE"
+echo "Base Branch:       $BASE"
+echo "Selected Items:    $ITEMS"
+
+# From here on everything is destructive (but reversible) so we want hard stops
+set -ex
+
+# Create a blank branch to work on
+git switch --orphan tatter/scratch
+
+# Bring over just what we need to recreate the framework
+git checkout "$BASE" -- .gitignore composer.*
+git clean -fd
+
+# If a current version was requested then change vendor first
+if [ "$CURRENT_VERSION" ]; then
+	composer require "$PACKAGE" "$CURRENT_VERSION"
+	git restore composer.*
+fi
+
+# Copy the source items
+for ITEM in $ITEMS; do
+	cp -R "vendor/$PACKAGE/$ITEM" ./
+done
+
+# Add everything but the modified Composer files
+git add .
+git reset composer.*
+git commit -m "Stage framework" > /dev/null
+
+# Check for a specific requested version
+if [ "$TARGET_VERSION" ]; then
+	composer require "$PACKAGE" "$TARGET_VERSION"
+# Otherwise get the latest
+else
+	composer update "$PACKAGE"
+fi
+
+# Wipe out the current versions and copy in the new
+for ITEM in $ITEMS; do
+	rm -rf "$ITEM"
+	cp -R "vendor/$PACKAGE/$ITEM" ./
+done
+
+# Add everything but the modified Composer files
+git add .
+git reset composer.*
+git commit -m "Patch framework"
+
+# Get rid of the now-corrupt Composer files
+rm composer.*
+
+# Create the new branch from base
+git switch -c tatter/patches "$BASE"
+
+# Attempt the merge
+git cherry-pick tatter/scratch
+
+if [ $? -eq 0 ]; then
+	echo "Patch successful! Changes available on branch tatter/patches."
+	git branch -D tatter/scratch
+	exit 0
+fi
+
+git status
+
+# Conflict: explain and exit
+echo "Conflicts detected during patch! Follow the git instructions for resolution."
+echo "Once resolution is complete your changes will be available on branch tatter/patches"
+echo "and you should remove the old working branch at tatter/scratch."
+
+exit 1

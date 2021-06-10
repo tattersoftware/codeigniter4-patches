@@ -1,0 +1,39 @@
+#!/bin/sh
+
+##
+# Tatter\Patches
+# https://github.com/tattersoftware/codeigniter4-patches
+#
+# Target Test Case
+# Tests using a desired target version.
+##
+
+echo "************************************"
+echo "* WITH TARGET VERSION              *"
+echo "************************************"
+
+CREATED="app/Config/Cookie.php"
+assert "! -f $CREATED" "File should not exist: $CREATED!"
+
+CHANGED="app/Config/App.php"
+BEFORE1=`get_hash $CHANGED`
+
+NOTCHANGED="app/Config/Cache.php"
+BEFORE2=`get_hash $NOTCHANGED`
+
+sh "$SCRIPT" -v 4.1.2 > /dev/null 2>&1
+
+assert "$? -eq 0" "Script failed to execute!"
+assert "-f $CREATED" "File does not exist: $CREATED!"
+
+AFTER1=`get_hash $CHANGED`
+assert "$BEFORE1 != $AFTER1" "File did not change: $CHANGED!"
+
+AFTER2=`get_hash $NOTCHANGED`
+assert "$BEFORE2 = $AFTER2" "File changed: $NOTCHANGED!"
+
+if [ "`git status --porcelain`" ]; then
+	assert true "Unresolved status issues!"
+fi
+
+return 0
