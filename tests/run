@@ -1,0 +1,96 @@
+#!/bin/sh
+
+##
+# Tatter\Patches
+# https://github.com/tattersoftware/codeigniter4-patches
+#
+# Test Runner
+# Runs the test suite.
+##
+
+set -e
+
+# Establish directories
+cd `dirname "$0"`
+SELF=`pwd`
+TESTS="$SELF/cases"
+
+cd "$SELF/../src"
+SOURCE=`pwd`
+SCRIPT="$SOURCE/patch"
+SCRATCH=`mktemp -d`
+
+set_up()
+{
+	rm -rf "$SCRATCH"/*
+	rm -rf "$SCRATCH"/.g*
+
+	# Create the AppStarter instance
+	cd "$SCRATCH"
+	composer create-project codeigniter4/appstarter appstarter 4.1.1
+
+	# Force the vendor version back as well
+	cd "$SCRATCH"/appstarter
+	cp composer.json composer.temp
+	composer require codeigniter4/framework 4.1.1
+	mv composer.temp composer.json
+
+	# Initialize git
+	git init -b develop
+	git add . && git commit -m "Initial commit"
+}
+
+clean_up()
+{
+	rm -rf "$SCRATCH"
+}
+trap clean_up EXIT
+
+assert()
+{
+	test $1
+	if [ $? -eq 0 ]; then
+		return 0
+	fi
+
+	# Get the message from the remaining arguments
+	shift;
+	MESSAGE=$@
+
+	echo "FAILED: $MESSAGE"
+	exit $CODE
+}
+
+get_hash()
+{
+	md5sum "$1" | awk '{print $1}'
+}
+
+# Begin testing
+set +e
+
+# Verify the tests
+assert "-d $TESTS" "Unable to locate tests"
+
+for FILE in "$TESTS"/*; do
+
+	NAME=`basename "$FILE"`
+
+	# Start with a clean slate
+	set_up > /dev/null 2>&1
+
+	# Execute the test
+	. $FILE
+
+	RESULT=$?
+	if [ $RESULT -ne 0 ]; then
+		echo "$NAME failed!"
+		exit $RESULT
+	fi
+
+	echo "$NAME passed."
+done
+
+echo "All tests passed!"
+
+exit 0

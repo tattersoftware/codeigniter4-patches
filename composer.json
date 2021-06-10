@@ -1,12 +1,12 @@
 {
 	"name": "tatter/patches",
 	"type": "library",
-	"description": "Module for updating CodeIgniter 4 projects",
+	"description": "Automated project updates for CodeIgniter 4",
 	"keywords": [
 		"codeigniter",
 		"codeigniter4",
 		"patches",
-		"composer",
+		"automatic",
 		"update",
 		"autoupdate"
 	],
@@ -21,36 +21,12 @@
 		}
 	],
 	"require": {
-		"php": ">=7.2",
-		"composer/composer": "^1.0 || ^2.0",
-		"sebastian/diff": "^3.0 || ^4.0"
+		"php": "^7.3 || ^8.0"
 	},
-	"require-dev": {
-		"codeigniter4/codeigniter4": "dev-develop",
-		"phpunit/phpunit": "^9.0",
-		"tatter/tools": "^1.1"
-	},
-	"autoload": {
-		"psr-4": {
-			"Tatter\\Patches\\": "src"
-		}
-	},
-	"autoload-dev": {
-		"psr-4": {
-			"Tests\\Support\\": "tests/_support"
-		}
-	},
-	"repositories": [
-		{
-			"type": "vcs",
-			"url": "https://github.com/codeigniter4/CodeIgniter4"
-		}
+	"bin": [
+		"src/patches"
 	],
-	"minimum-stability": "dev",
-	"prefer-stable": true,
 	"scripts": {
-		"analyze": "phpstan analyze",
-		"style": "phpcs --standard=./vendor/codeigniter4/codeigniter4-standard/CodeIgniter4 tests/ src/",
-		"test": "phpunit"
+		"test": "tests/run"
 	}
 }
