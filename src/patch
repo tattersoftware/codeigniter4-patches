@@ -52,7 +52,7 @@ done
 
 ROOT=`pwd`
 SCRIPTS=`dirname "$0"`
-ITEMS="app/ env  public/ spark  writable/"
+ITEMS="app/ public/ env spark"
 
 # TODO: Parse missing current version from vendor/ or composer.lock or composer.json
 # TODO: Fetch missing target version from GitHub API or cURL endpoint
