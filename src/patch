@@ -124,7 +124,7 @@ echo ""
 echo "Scripts Directory: $SCRIPTS"
 echo "Project Directory: $ROOT"
 echo "Target Version:    $TARGET_VERSION"
-echo "Current Version:   $SOURCE_VERSION"
+echo "Current Version:   $CURRENT_VERSION"
 echo "Source Package:    $PACKAGE"
 echo "Base Branch:       $BASE"
 echo "Selected Items:    $ITEMS"
@@ -146,7 +146,7 @@ git clean -fd
 
 # If a current version was requested then change vendor first
 if [ "$CURRENT_VERSION" ]; then
-	composer require --no-scripts "$PACKAGE" "$CURRENT_VERSION"
+	composer require --no-scripts --with-all-dependencies "$PACKAGE" "$CURRENT_VERSION"
 	git restore composer.*
 fi
 
@@ -162,10 +162,10 @@ git commit -m "Stage framework" > /dev/null
 
 # Check for a specific requested version
 if [ "$TARGET_VERSION" ]; then
-	composer require --no-scripts "$PACKAGE" "$TARGET_VERSION"
+	composer require --no-scripts --with-all-dependencies "$PACKAGE" "$TARGET_VERSION"
 # Otherwise get the latest
 else
-	composer update --no-scripts "$PACKAGE"
+	composer update --no-scripts --with-all-dependencies "$PACKAGE"
 fi
 
 # Wipe out the current versions and copy in the new
