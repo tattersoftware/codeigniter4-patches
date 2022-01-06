@@ -32,7 +32,7 @@ set_up()
 	# Force the vendor version back as well
 	cd "$SCRATCH"/appstarter
 	cp composer.json composer.temp
-	composer require codeigniter4/framework 4.1.1
+	composer require --with-all-dependencies codeigniter4/framework 4.1.1
 	mv composer.temp composer.json
 
 	# Initialize git

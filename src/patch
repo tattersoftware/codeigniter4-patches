@@ -186,7 +186,7 @@ rm composer.*
 git switch -c tatter/patches "$BASE"
 
 # Restore the original state of vendor/
-composer install --no-scripts --with-all-dependencies > /dev/null
+composer install --no-scripts > /dev/null
 
 echo "************************************"
 echo "*              MERGING             *"
