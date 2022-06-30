@@ -158,7 +158,7 @@ done
 # Add everything but the modified Composer files
 git add .
 git reset composer.*
-git commit -m "Stage framework" > /dev/null
+git commit -m "Stage framework" --no-verify > /dev/null
 
 # Check for a specific requested version
 if [ "$TARGET_VERSION" ]; then
@@ -177,7 +177,7 @@ done
 # Add everything but the modified Composer files
 git add .
 git reset composer.*
-git commit -m "Patch framework"
+git commit -m "Patch framework" --no-verify
 
 # Get rid of the now-corrupt Composer files
 rm composer.*
