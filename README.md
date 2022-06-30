@@ -17,10 +17,10 @@ stage any conflicts for easy resolution.
 ## Requirements
 
 **Patches** is built on top of [Git](https://git-scm.com) and [Composer](https://getcomposer.org),
-so requires both of those be installed an accessible in your PATH. Additionally, the `patch`
-command makes the following assumptions (and will fail if they are not met):
+so requires both of those be installed and accessible in your `$PATH`. Additionally, the
+`patch` command makes the following assumptions (and will fail if they are not met):
 
-* You project is in an existing Git repository
+* You project is in an existing Git repository (with configured Git user)
 * The CodeIgniter 4 framework is installed via Composer in your **vendor/** directory
 * The current branch is "clean" (no uncommitted changes or unstaged files)
 * Your project files are in their standard locations (**app/**, **public/**, **env**, **spark**)
@@ -30,7 +30,9 @@ command makes the following assumptions (and will fail if they are not met):
 
 Install easily via Composer to take advantage of CodeIgniter 4's autoloading capabilities
 and always be up-to-date:
-* `> composer require --dev tatter/patches`
+```console
+> composer require --dev tatter/patches
+```
 
 > Note: While **Patches** can be run in a production environment it is strongly recommended
   that you install it in development (using `--dev`) and then deploy the repo changes to production.
@@ -42,7 +44,7 @@ You may also download the script and add it to your favorite projects.
 **Patches** comes with a single script, `patch`, which Composer will treat as a binary and
 deploy to your **vendor/bin/** folder. Simply run the command to kick off the patch process:
 
-	./vendor/bin/patch
+    ./vendor/bin/patch
 
 ### Arguments
 
@@ -54,7 +56,7 @@ Git recognizes (branch, hash, tag, reference, revision, etc).
 
 Displays the latest command help:
 
-```shell
+```console
 Usage: ./patch [-c <current version>] [-v <target version>]
 
 Patches an existing CodeIgniter 4 project repo to a different version of the framework.
@@ -75,7 +77,6 @@ commits. Examples:
 	./vendor/bin/patch -v 4.1.2
 
 * Patch up to a specific commit.
-
 	./vendor/bin/patch -v dev-develop#0cff5488676f36f9e08874fdeea301222b6971a2
 
 #### Current (-c <commit-ish>)
@@ -103,7 +104,7 @@ for the configuration. Your project is running version `4.1.2` but wants to upda
 use this new component. When **Patches** simulates the update between these versions `git` will
 notice the new file:
 
-```shell
+```console
 A	app/Config/Widget.php
 ```
 
@@ -214,7 +215,7 @@ a `cherry-pick`. This is a technical Git process for isolating a single commit a
 another branch. if you are mid-cherry-pick then `git status` should display the current state, as well
 as any conflicting files and some hints for how to proceed:
 
-```shell
+```console
 git status
 On branch tatter/patches
 You are currently cherry-picking commit a8b4361.
