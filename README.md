@@ -25,6 +25,7 @@ so requires both of those be installed and accessible in your `$PATH`. Additiona
 * The current branch is "clean" (no uncommitted changes or unstaged files)
 * Your project files are in their standard locations (**app/**, **public/**, **env**, **spark**)
 * You have no ignored files in **app/** or **public/** that the patch process would disrupt
+* The **vendor/** folder must be ignored for tracking on your Git repository
 
 ## Installation
 
