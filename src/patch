@@ -138,7 +138,8 @@ echo "*             STAGING              *"
 echo "************************************"
 echo ""
 # Create a blank branch to work on
-git switch --orphan tatter/scratch
+git checkout --orphan tatter/scratch
+git rm -rf .
 
 # Bring over just what we need to recreate the framework
 git checkout "$BASE" -- .gitignore composer.*
@@ -183,7 +184,7 @@ git commit -m "Patch framework" --no-verify
 rm composer.*
 
 # Create the new branch from base
-git switch -c tatter/patches "$BASE"
+git checkout -b tatter/patches "$BASE"
 
 # Restore the original state of vendor/
 composer install --no-scripts > /dev/null
