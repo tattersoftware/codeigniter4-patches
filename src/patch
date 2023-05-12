@@ -8,54 +8,112 @@
 # different version of the framework.
 ##
 
-show_help()
-{
-	cat >&2 <<EOT
+show_help() {
+    cat >&2 <<EOT
 
-Usage: ./patch [-c <current version>] [-v <target version>]
+    Usage: ./patch [-c <current version>] [-v <target version>] [-e <user Github email>] [-n <user Github username>]
 
-Patches an existing CodeIgniter 4 project repo to a different version of the framework.
+    Patches an existing CodeIgniter 4 project repo to a different version of the framework.
 
-Options:
-  -h             Help. Show this help message and exit
-  -c commit-ish  Alternate version to consider "current" (rarely needed).
-  -v commit-ish  Version to use for patching. Defaults to the latest.
+    Options:
+    -h             Help. Show this help message and exit
+    -c commit-ish  Alternate version to consider "current" (rarely needed).
+    -v commit-ish  Version to use for patching. Defaults to the latest.
+    -e             User Github email.
+    -n             User Github username.
 
-Examples:
-  Patch the current installed repo up to the latest available.
-    ${0}:
-  Patch the current installed repo to a specific version.
-    ${0} -v 4.1.2
-  Assume the repo is in an older state and patch to a specific commit.
-    ${0} -c 4.0.4 -v dev-develop#0cff5488676f36f9e08874fdeea301222b6971a2
+    Examples:
+    Patch the current installed repo up to the latest available.
+        ${0}:
+    Patch the current installed repo to a specific version.
+        ${0} -v 4.1.2
+    Assume the repo is in an older state and patch to a specific commit.
+        ${0} -c 4.0.4 -v dev-develop#0cff5488676f36f9e08874fdeea301222b6971a2
+    Patch the current installed repo up to the latest available using Github credentials.
+        ${0} -e example@gmail.com -n example_username
 
 EOT
 }
 
+check_docker_env() {
+    if [ -f "/.dockerenv" ]; then
+        ENV_INFO="Running inside a Docker container"
+    else
+        ENV_INFO="Not running inside a Docker container"
+    fi
+
+    echo $ENV_INFO
+}
+
+get_installed_version() {
+    if [[ -f "composer.lock" ]]; then
+        INSTALLED_VERSION=$(jq -r '.packages[] | select(.name == "codeigniter4/framework") | .version' < composer.lock)
+        echo $INSTALLED_VERSION
+    else
+        echo "Error: Could not find composer.lock." >&2
+        exit 1
+    fi
+}
+
+get_latest_version() {
+    LATEST_VERSION=$(curl --silent "https://codeigniter.com/download" | grep -o 'The current version is v[0-9]\+\.[0-9]\+\.[0-9]\+' | cut -d' ' -f5)
+
+    # Check if the LATEST_VERSION variable is empty
+    if [ -z "$LATEST_VERSION" ]; then
+        echo "Error: Failed to retrieve latest version"
+        exit 1
+    fi
+
+    echo "$LATEST_VERSION"
+}
+
 CURRENT_VERSION=""
 TARGET_VERSION=""
+GH_USER_EMAIL=""
+GH_USER_NAME=""
 
-while getopts "hv:c:" OPT; do
-	case ${OPT} in
-		h)	## -h help
-			show_help
-			exit 0
-			;;
-		c)	## -c <current version>
-			CURRENT_VERSION=${OPTARG}
-			;;
-		v)	## -c <target version>
-			TARGET_VERSION=${OPTARG}
-			;;
-	esac
+while getopts "hv:c:e:n:" OPT; do
+    case ${OPT} in
+        h)  ## -h help
+            show_help
+            exit 0
+            ;;
+        c)  ## -c <current version>
+            CURRENT_VERSION=${OPTARG}
+            ;;
+        v)  ## -v <target version>
+            TARGET_VERSION=${OPTARG}
+            ;;
+        e)  ## -e <user github email>
+            GH_USER_EMAIL=${OPTARG}
+            ;;
+        n)  ## -n <user github username>
+            GH_USER_NAME=${OPTARG}
+            ;;
+        \?) ## incorrect option
+            echo "Error: Invalid option"
+            exit 1
+            ;;
+    esac
 done
 
 ROOT=`pwd`
 SCRIPTS=`dirname "$0"`
 ITEMS="app/ public/ env spark"
 
-# TODO: Parse missing current version from vendor/ or composer.lock or composer.json
-# TODO: Fetch missing target version from GitHub API or cURL endpoint
+# Get the installed and latest versions
+INSTALLED_VERSION=$(get_installed_version)  # gets the installed version number
+LATEST_VERSION=$(get_latest_version)  # gets the latest available version number
+
+# Check if there is a current version and set it to installed version if found
+if [[ -z "$CURRENT_VERSION" ]]; then  # checks if the variable CURRENT_VERSIONL is not empty
+  CURRENT_VERSION=$INSTALLED_VERSION   # sets the value of CURRENT_VERSION to INSTALLED_VERSION
+fi
+
+# Check if there is a target version and set it to latest version if found
+if [[ -z "$TARGET_VERSION" ]]; then  # checks if the variable TARGET_VERSIONL is not empty
+  TARGET_VERSION=$LATEST_VERSION   # sets the value of TARGET_VERSION to LATEST_VERSION
+fi
 
 # Error handling
 try()
@@ -73,9 +131,22 @@ try()
 	exit $CODE
 }
 
+# Check environment
+check_docker_env
+
 # Verify executables
 git --version
 try $? "Git must be installed."
+
+# Set github user email if specified
+if [[ -n "$GH_USER_EMAIL" ]]; then
+  git config --global user.email "$GH_USER_EMAIL"
+fi
+
+# Set github user name if specified
+if [[ -n "$GH_USER_NAME" ]]; then
+  git config --global user.name "$GH_USER_NAME"
+fi
 
 composer --version
 try $? "Composer must be installed."
@@ -121,6 +192,7 @@ echo "************************************"
 echo "*          CONFIGURATION           *"
 echo "************************************"
 echo ""
+echo "Environment:       $ENV_INFO"
 echo "Scripts Directory: $SCRIPTS"
 echo "Project Directory: $ROOT"
 echo "Target Version:    $TARGET_VERSION"
@@ -137,26 +209,31 @@ echo "************************************"
 echo "*             STAGING              *"
 echo "************************************"
 echo ""
+
 # Create a blank branch to work on
-git checkout --orphan tatter/scratch
-git rm -rf .
+echo "Creating a new orphan branch..."
+git switch --orphan tatter/scratch
 
 # Bring over just what we need to recreate the framework
+echo "Checking out necessary files from $BASE..."
 git checkout "$BASE" -- .gitignore composer.*
 git clean -fd
 
 # If a current version was requested then change vendor first
 if [ "$CURRENT_VERSION" ]; then
-	composer require --no-scripts --with-all-dependencies "$PACKAGE" "$CURRENT_VERSION"
-	git restore composer.*
+    echo "Updating the current vendor version to $CURRENT_VERSION..."
+    composer require --no-scripts --with-all-dependencies "$PACKAGE" "$CURRENT_VERSION"
+    git restore composer.*
 fi
 
 # Copy the source items
+echo "Copying source items..."
 for ITEM in $ITEMS; do
-	cp -R "vendor/$PACKAGE/$ITEM" ./
+    cp -R "vendor/$PACKAGE/$ITEM" ./
 done
 
 # Add everything but the modified Composer files
+echo "Adding items to staging area..."
 git add .
 git reset composer.*
 git commit -m "Stage framework" --no-verify > /dev/null
@@ -164,30 +241,33 @@ git commit -m "Stage framework" --no-verify > /dev/null
 # Check for a specific requested version
 if [ "$TARGET_VERSION" ]; then
 	composer require --no-scripts --with-all-dependencies "$PACKAGE" "$TARGET_VERSION"
-# Otherwise get the latest
-else
-	composer update --no-scripts --with-all-dependencies "$PACKAGE"
 fi
 
 # Wipe out the current versions and copy in the new
+echo "Copy new package files..."
 for ITEM in $ITEMS; do
-	rm -rf "$ITEM"
-	cp -R "vendor/$PACKAGE/$ITEM" ./
+    rm -rf "$ITEM"
+    cp -R "vendor/$PACKAGE/$ITEM" ./
 done
 
 # Add everything but the modified Composer files
+echo "Adding items to staging area..."
 git add .
 git reset composer.*
 git commit -m "Patch framework" --no-verify
 
 # Get rid of the now-corrupt Composer files
+echo "Removing corrupted Composer files..."
 rm composer.*
 
 # Create the new branch from base
-git checkout -b tatter/patches "$BASE"
+echo "Creating a new branch from $BASE..."
+git switch -c tatter/patches "$BASE"
 
 # Restore the original state of vendor/
+echo "Restoring original state of vendor/..."
 composer install --no-scripts > /dev/null
+
 
 echo "************************************"
 echo "*              MERGING             *"
