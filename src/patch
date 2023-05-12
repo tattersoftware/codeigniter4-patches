@@ -35,6 +35,27 @@ show_help() {
 EOT
 }
 
+function install_dependencies() {
+    if ! command -v jq &> /dev/null || ! command -v cut &> /dev/null || ! command -v grep &> /dev/null; then
+        if [[ $(uname) == "Linux" ]]; then
+            if command -v yum &> /dev/null; then
+                sudo yum install -y epel-release
+                sudo yum install -y jq cut grep
+            elif command -v dnf &> /dev/null; then
+                sudo dnf install -y jq cut grep
+            elif command -v zypper &> /dev/null; then
+                sudo zypper install -y jq cut grep
+            elif command -v apk &> /dev/null; then
+                sudo apk add jq cut grep
+            else
+                echo "Unsupported Linux distribution"
+            fi
+         elif [[ $(uname) == "MINGW"* ]]; then
+            choco install -y jq grep
+         fi
+    fi
+}
+
 check_docker_env() {
     if [ -f "/.dockerenv" ]; then
         ENV_INFO="Running inside a Docker container"
@@ -66,6 +87,16 @@ get_latest_version() {
 
     echo "$LATEST_VERSION"
 }
+
+# Install dependencies if needed
+echo "Checking and installing dependencies..."
+install_dependencies
+echo "Dependencies installed successfully."
+
+# Check environment
+echo "Checking environment "
+check_docker_env
+echo "Environment checked successfuly."
 
 CURRENT_VERSION=""
 TARGET_VERSION=""
@@ -130,9 +161,6 @@ try()
 	echo "ERROR $CODE: $MESSAGE"
 	exit $CODE
 }
-
-# Check environment
-check_docker_env
 
 # Verify executables
 git --version
