@@ -20,6 +20,8 @@ Options:
   -h             Help. Show this help message and exit
   -c commit-ish  Alternate version to consider "current" (rarely needed).
   -v commit-ish  Version to use for patching. Defaults to the latest.
+  -e             Git global user.email.
+  -n             Git global user.name.
 
 Examples:
   Patch the current installed repo up to the latest available.
@@ -35,7 +37,7 @@ EOT
 CURRENT_VERSION=""
 TARGET_VERSION=""
 
-while getopts "hv:c:" OPT; do
+while getopts "hv:c:e:n:" OPT; do
 	case ${OPT} in
 		h)	## -h help
 			show_help
@@ -47,6 +49,12 @@ while getopts "hv:c:" OPT; do
 		v)	## -c <target version>
 			TARGET_VERSION=${OPTARG}
 			;;
+        e)  ## -e <git user.email>
+            GIT_USER_EMAIL=${OPTARG}
+            ;;
+        n)  ## -n <git user.name>
+            GIT_USER_NAME=${OPTARG}
+            ;;
 	esac
 done
 
@@ -76,6 +84,12 @@ try()
 # Verify executables
 git --version
 try $? "Git must be installed."
+
+# When using patches in a Docker container, it is necessary to manually set the user.email and user.name values
+if [[ -n "$GIT_USER_EMAIL" && -n "$GIT_USER_NAME" ]]; then
+    git config --global user.email "$GIT_USER_EMAIL";
+    git config --global user.name "$GIT_USER_NAME";
+fi
 
 composer --version
 try $? "Composer must be installed."
