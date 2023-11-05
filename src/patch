@@ -85,7 +85,7 @@ try()
 git --version
 try $? "Git must be installed."
 
-# When using patches in a Docker container, it is necessary to manually set the user.email and user.name values
+# When using patches in a Docker container, it is necessary to set the user.email and user.name values manually
 if [[ -n "$GIT_USER_EMAIL" && -n "$GIT_USER_NAME" ]]; then
     git config --global user.email "$GIT_USER_EMAIL";
     git config --global user.name "$GIT_USER_NAME";
