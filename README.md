@@ -53,7 +53,7 @@ Most of the time the simple script is what you will want, but `patch` takes a fe
 to alter the behavior of the patch process. Arguments that take a "commit-ish" can use anything
 Git recognizes (branch, hash, tag, reference, revision, etc).
 
-To ensure patches work correctly in a Docker container, you may need to manually set the `user.email` and `user.name` values using the `-e` and `-n` flags respectively. This is necessary because Docker containers are often not preconfigured for Git.
+To ensure patches work correctly in a Docker container, you may need to set the `user.email` and `user.name` values manually using the `-e` and `-n` flags respectively. This is necessary because Docker containers are often not preconfigured for Git.
 
 #### Help (-h)
 
