@@ -176,12 +176,15 @@ git reset composer.*
 git commit -m "Stage framework" --no-verify > /dev/null
 
 # Check for a specific requested version
+set +e
 if [ "$TARGET_VERSION" ]; then
 	OUTPUT=$(composer require --no-scripts --with-all-dependencies "$PACKAGE" "$TARGET_VERSION" 2>&1)
 # Otherwise get the latest
 else
 	OUTPUT=$(composer update --no-scripts --with-all-dependencies "$PACKAGE" 2>&1)
 fi
+try $? "Unable to checkout $PACKAGE\n$OUTPUT"
+set -e
 
 for LINE in "$OUTPUT"; do
 	echo "$LINE\n"
