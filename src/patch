@@ -34,6 +34,15 @@ Examples:
 EOT
 }
 
+# Color definitions
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[0;33m'
+BLUE='\033[0;34m'
+MAGENTA='\033[0;35m'
+CYAN='\033[0;36m'
+RESET='\033[0m'
+
 CURRENT_VERSION=""
 TARGET_VERSION=""
 
@@ -131,10 +140,10 @@ for BRANCH in "tatter/scratch" "tatter/patches"; do
 done
 
 # Display environment info
-echo "************************************"
+echo "${GREEN}************************************"
 echo "*          CONFIGURATION           *"
 echo "************************************"
-echo ""
+echo "${RESET}"
 echo "Scripts Directory: $SCRIPTS"
 echo "Project Directory: $ROOT"
 echo "Target Version:    $TARGET_VERSION"
@@ -147,10 +156,11 @@ echo ""
 # From here on everything is destructive (but reversible) so we want hard stops
 set -e
 
-echo "************************************"
+echo "${GREEN}************************************"
 echo "*             STAGING              *"
 echo "************************************"
-echo ""
+echo "${RESET}"
+
 # Create a blank branch to work on
 git checkout --orphan tatter/scratch
 git rm -rf .
@@ -202,6 +212,7 @@ done
 # Add everything but the modified Composer files
 git add .
 git reset composer.*
+echo "${GREEN}> git commit -m \"Patch framework $FROMTO\" --no-verify${RESET}"
 git commit -m "Patch framework $FROMTO" --no-verify
 
 # Get rid of the now-corrupt Composer files
@@ -213,21 +224,21 @@ git checkout -b tatter/patches "$BASE"
 # Restore the original state of vendor/
 composer install --no-scripts > /dev/null
 
-echo "************************************"
+echo "${GREEN}************************************"
 echo "*              MERGING             *"
 echo "************************************"
-echo ""
+echo "${RESET}"
 
 # Attempt the merge
 set +e
 git cherry-pick tatter/scratch
 
 if [ $? -eq 0 ]; then
-	echo "************************************"
+	echo "${GREEN}************************************"
 	echo "*              SUCCESS             *"
 	echo "************************************"
 	echo ""
-	echo "Patch successful! Updated files are available on branch tatter/patches."
+	echo "Patch successful! Updated files are available on branch tatter/patches.${RESET}"
 	git branch -D tatter/scratch
 	exit 0
 fi
@@ -235,7 +246,7 @@ fi
 git status
 
 # Conflict: explain and exit
-echo ""
+echo "${RED}"
 echo "************************************"
 echo "*            RESOLUTION            *"
 echo "************************************"
@@ -243,6 +254,6 @@ echo ""
 echo "Conflicts detected during patch! Follow the git instructions for resolution."
 echo "Once resolution is complete your changes will be available on branch tatter/patches"
 echo "and you should remove the old working branch at tatter/scratch."
-echo ""
+echo "${RESET}"
 
 exit 1
